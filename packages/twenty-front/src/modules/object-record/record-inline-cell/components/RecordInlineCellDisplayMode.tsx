@@ -1,5 +1,7 @@
 import { styled } from '@linaria/react';
 
+import { FieldCommentButton } from '@/field-comments/components/FieldCommentButton';
+import { IS_FIELD_COMMENTS_ENABLED } from '@/field-comments/constants/IsFieldCommentsEnabled';
 import { FieldContext } from '@/object-record/record-field/ui/contexts/FieldContext';
 import { useIsFieldEmpty } from '@/object-record/record-field/ui/hooks/useIsFieldEmpty';
 import { useIsFieldInputOnly } from '@/object-record/record-field/ui/hooks/useIsFieldInputOnly';
@@ -74,7 +76,12 @@ export const RecordInlineCellDisplayMode = ({
   const { editModeContentOnly, label, buttonIcon, readonly } =
     useRecordInlineCellContext();
 
-  const { isForbidden } = useContext(FieldContext);
+  const { isForbidden, recordId, fieldDefinition } = useContext(FieldContext);
+
+  const showFieldCommentButton =
+    IS_FIELD_COMMENTS_ENABLED &&
+    !!recordId &&
+    !!fieldDefinition?.fieldMetadataId;
 
   const isFieldEmpty = useIsFieldEmpty();
   const showEditButton =
@@ -110,6 +117,7 @@ export const RecordInlineCellDisplayMode = ({
       {showEditButton && (
         <RecordInlineCellButton Icon={buttonIcon} onClick={onClick} />
       )}
+      {showFieldCommentButton && <FieldCommentButton isHovered={isHovered} />}
     </>
   );
 };

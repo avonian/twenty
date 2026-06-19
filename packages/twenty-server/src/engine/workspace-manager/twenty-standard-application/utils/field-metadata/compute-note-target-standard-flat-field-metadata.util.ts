@@ -203,6 +203,27 @@ export const buildNoteTargetStandardFlatFieldMetadatas = ({
     now,
   }),
 
+  targetFieldMetadataId: createStandardFieldFlatMetadata({
+    objectName,
+    workspaceId,
+    context: {
+      fieldName: 'targetFieldMetadataId',
+      type: FieldMetadataType.UUID,
+      label: i18nLabel(msg`Target Field Metadata Id`),
+      description: i18nLabel(
+        msg`Field this note is anchored to (for field-level comments)`,
+      ),
+      icon: 'IconAbc',
+      isSystem: true,
+      isNullable: true,
+      isUIEditable: false,
+    },
+    standardObjectMetadataRelatedEntityIds,
+    dependencyFlatEntityMaps,
+    twentyStandardApplicationId,
+    now,
+  }),
+
   // Relation fields
   note: createStandardRelationFieldFlatMetadata({
     objectName,

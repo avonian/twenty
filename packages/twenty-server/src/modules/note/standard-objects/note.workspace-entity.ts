@@ -29,4 +29,11 @@ export class NoteWorkspaceEntity extends BaseWorkspaceEntity {
   attachments: EntityRelation<AttachmentWorkspaceEntity[]>;
   timelineActivities: EntityRelation<TimelineActivityWorkspaceEntity[]>;
   searchVector: string;
+  // Threaded comments: a reply points at its root note via parentNote.
+  parentNote: EntityRelation<NoteWorkspaceEntity> | null;
+  parentNoteId: string | null;
+  replies: EntityRelation<NoteWorkspaceEntity[]>;
+  // Resolve state for field-comment threads (set on the root note).
+  isResolved: boolean;
+  resolvedAt: string | null;
 }

@@ -1,5 +1,6 @@
 import {
   type CoreObjectNameSingular,
+  type RecordGqlOperationFilter,
   type RecordGqlOperationOrderBy,
 } from 'twenty-shared/types';
 
@@ -20,6 +21,7 @@ export const useActivityTargetsForTargetableObjects = ({
   onCompleted,
   activityTargetsOrderByVariables,
   limit,
+  additionalFilter,
 }: {
   objectNameSingular: CoreObjectNameSingular.Note | CoreObjectNameSingular.Task;
   targetableObjects: Pick<
@@ -30,13 +32,17 @@ export const useActivityTargetsForTargetableObjects = ({
   onCompleted?: (activityTargets: (TaskTarget | NoteTarget)[]) => void;
   activityTargetsOrderByVariables: RecordGqlOperationOrderBy;
   limit: number;
+  additionalFilter?: RecordGqlOperationFilter;
 }) => {
   const objectMetadataItems = useAtomStateValue<EnrichedObjectMetadataItem[]>(
     objectMetadataItemsSelector,
   );
-  const activityTargetsFilter = getActivityTargetsFilter({
-    targetableObjects,
-  });
+  const activityTargetsFilter = {
+    ...getActivityTargetsFilter({
+      targetableObjects,
+    }),
+    ...(additionalFilter ?? {}),
+  };
 
   const FIND_ACTIVITY_TARGETS_OPERATION_SIGNATURE =
     findActivityTargetsOperationSignatureFactory({

@@ -15,5 +15,8 @@ export class NoteTargetWorkspaceEntity extends BaseWorkspaceEntity {
   targetCompanyId: string | null;
   targetOpportunity: EntityRelation<OpportunityWorkspaceEntity> | null;
   targetOpportunityId: string | null;
+  // When set, this note is anchored to a specific field (fieldMetadata UUID)
+  // of the target record — used for Google-Docs-style field comments.
+  targetFieldMetadataId: string | null;
   custom: EntityRelation<CustomWorkspaceEntity>;
 }

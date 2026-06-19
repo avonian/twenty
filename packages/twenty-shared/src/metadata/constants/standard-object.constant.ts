@@ -1515,6 +1515,18 @@ export const STANDARD_OBJECTS = {
       searchVector: {
         universalIdentifier: '20202020-7ea8-44d4-9d4c-51dd2a757950',
       },
+      parentNote: {
+        universalIdentifier: '80c2e723-1150-4210-bd49-2d4f8b76e627',
+      },
+      replies: {
+        universalIdentifier: '026705c8-ad5c-45b6-83f4-faae49374d26',
+      },
+      isResolved: {
+        universalIdentifier: '41f93771-d1c8-4173-af14-590a0bb016f1',
+      },
+      resolvedAt: {
+        universalIdentifier: '96a15f7b-61b2-4c1d-a0b1-7943ad37a4dd',
+      },
     },
     indexes: {
       searchVectorGinIndex: {
@@ -1615,6 +1627,9 @@ export const STANDARD_OBJECTS = {
       },
       searchVector: {
         universalIdentifier: '0cc32d0f-99ab-4fee-bf66-9e84bc8bce00',
+      },
+      targetFieldMetadataId: {
+        universalIdentifier: 'e9b72d79-85cd-453f-86a8-203d39bd928b',
       },
     },
     morphIds: {

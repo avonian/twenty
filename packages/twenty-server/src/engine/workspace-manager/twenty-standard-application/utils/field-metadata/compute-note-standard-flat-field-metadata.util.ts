@@ -3,6 +3,7 @@ import { i18nLabel } from 'src/engine/workspace-manager/twenty-standard-applicat
 import {
   DateDisplayFormat,
   FieldMetadataType,
+  RelationOnDeleteAction,
   RelationType,
 } from 'twenty-shared/types';
 
@@ -237,6 +238,48 @@ export const buildNoteStandardFlatFieldMetadatas = ({
     now,
   }),
 
+  // Field-comment thread state (set on the root note)
+  isResolved: createStandardFieldFlatMetadata({
+    objectName,
+    workspaceId,
+    context: {
+      fieldName: 'isResolved',
+      type: FieldMetadataType.BOOLEAN,
+      label: i18nLabel(msg`Resolved`),
+      description: i18nLabel(msg`Whether the comment thread is resolved`),
+      icon: 'IconCircleCheck',
+      isSystem: true,
+      isUIEditable: false,
+      isNullable: false,
+      defaultValue: false,
+    },
+    standardObjectMetadataRelatedEntityIds,
+    dependencyFlatEntityMaps,
+    twentyStandardApplicationId,
+    now,
+  }),
+  resolvedAt: createStandardFieldFlatMetadata({
+    objectName,
+    workspaceId,
+    context: {
+      fieldName: 'resolvedAt',
+      type: FieldMetadataType.DATE_TIME,
+      label: i18nLabel(msg`Resolved at`),
+      description: i18nLabel(msg`When the comment thread was resolved`),
+      icon: 'IconCalendarCheck',
+      isSystem: true,
+      isUIEditable: false,
+      isNullable: true,
+      settings: {
+        displayFormat: DateDisplayFormat.RELATIVE,
+      },
+    },
+    standardObjectMetadataRelatedEntityIds,
+    dependencyFlatEntityMaps,
+    twentyStandardApplicationId,
+    now,
+  }),
+
   // Relation fields
   noteTargets: createStandardRelationFieldFlatMetadata({
     objectName,
@@ -302,6 +345,54 @@ export const buildNoteStandardFlatFieldMetadatas = ({
       isNullable: true,
       targetObjectName: 'timelineActivity',
       targetFieldName: 'targetNote',
+      settings: {
+        relationType: RelationType.ONE_TO_MANY,
+      },
+    },
+    standardObjectMetadataRelatedEntityIds,
+    dependencyFlatEntityMaps,
+    twentyStandardApplicationId,
+    now,
+  }),
+  parentNote: createStandardRelationFieldFlatMetadata({
+    objectName,
+    workspaceId,
+    context: {
+      type: FieldMetadataType.RELATION,
+      morphId: null,
+      fieldName: 'parentNote',
+      label: i18nLabel(msg`Parent note`),
+      description: i18nLabel(msg`Root note this reply belongs to`),
+      icon: 'IconMessageReply',
+      isNullable: true,
+      isUIEditable: false,
+      targetObjectName: 'note',
+      targetFieldName: 'replies',
+      settings: {
+        relationType: RelationType.MANY_TO_ONE,
+        onDelete: RelationOnDeleteAction.SET_NULL,
+        joinColumnName: 'parentNoteId',
+      },
+    },
+    standardObjectMetadataRelatedEntityIds,
+    dependencyFlatEntityMaps,
+    twentyStandardApplicationId,
+    now,
+  }),
+  replies: createStandardRelationFieldFlatMetadata({
+    objectName,
+    workspaceId,
+    context: {
+      type: FieldMetadataType.RELATION,
+      morphId: null,
+      fieldName: 'replies',
+      label: i18nLabel(msg`Replies`),
+      description: i18nLabel(msg`Replies to this note`),
+      icon: 'IconMessageReply',
+      isNullable: true,
+      isUIEditable: false,
+      targetObjectName: 'note',
+      targetFieldName: 'parentNote',
       settings: {
         relationType: RelationType.ONE_TO_MANY,
       },

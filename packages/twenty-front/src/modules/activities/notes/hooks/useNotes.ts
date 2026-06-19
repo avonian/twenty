@@ -33,6 +33,9 @@ export const useNotes = (targetableObject: ActivityTargetableObject) => {
     activityTargetsOrderByVariables: notesQueryVariables.orderBy ?? [{}],
     targetableObjects: [targetableObject],
     limit: 10,
+    // Field-anchored comments live on noteTargets with targetFieldMetadataId
+    // set; keep them out of the record's regular Notes tab.
+    additionalFilter: { targetFieldMetadataId: { is: 'NULL' } },
   });
 
   const [currentNotesQueryVariables, setCurrentNotesQueryVariables] =

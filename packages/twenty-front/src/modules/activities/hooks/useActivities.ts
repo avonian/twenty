@@ -9,6 +9,7 @@ import { type Task } from '@/activities/types/Task';
 import { type TaskTarget } from '@/activities/types/TaskTarget';
 import {
   type CoreObjectNameSingular,
+  type RecordGqlOperationFilter,
   type RecordGqlOperationOrderBy,
 } from 'twenty-shared/types';
 import { getRecordsFromRecordConnection } from '@/object-record/cache/utils/getRecordsFromRecordConnection';
@@ -21,12 +22,14 @@ export const useActivities = <T extends Task | Note>({
   activityTargetsOrderByVariables,
   skip,
   limit,
+  additionalFilter,
 }: {
   objectNameSingular: CoreObjectNameSingular.Note | CoreObjectNameSingular.Task;
   targetableObjects: ActivityTargetableObject[];
   activityTargetsOrderByVariables: RecordGqlOperationOrderBy;
   skip?: boolean;
   limit: number;
+  additionalFilter?: RecordGqlOperationFilter;
 }) => {
   const store = useStore();
   const updateActivitiesInStore = useCallback(
@@ -57,6 +60,7 @@ export const useActivities = <T extends Task | Note>({
     activityTargetsOrderByVariables,
     onCompleted: updateActivitiesInStore,
     limit,
+    additionalFilter,
   });
 
   const activities = activityTargets

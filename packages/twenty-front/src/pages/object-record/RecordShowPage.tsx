@@ -1,6 +1,8 @@
 import { useParams } from 'react-router-dom';
 
 import { SidePanelToggleButton } from '@/side-panel/components/SidePanelToggleButton';
+import { FieldCommentsPanel } from '@/field-comments/components/FieldCommentsPanel';
+import { IS_FIELD_COMMENTS_ENABLED } from '@/field-comments/constants/IsFieldCommentsEnabled';
 import { RecordShowCommandMenu } from '@/command-menu-item/components/RecordShowCommandMenu';
 import { CommandMenuComponentInstanceContext } from '@/command-menu/states/contexts/CommandMenuComponentInstanceContext';
 import { TimelineActivityContext } from '@/activities/timeline-activities/contexts/TimelineActivityContext';
@@ -78,6 +80,12 @@ export const RecordShowPage = () => {
               />
             </TimelineActivityContext.Provider>
           </PageCardLayout>
+          {IS_FIELD_COMMENTS_ENABLED && (
+            <FieldCommentsPanel
+              recordId={objectRecordId}
+              objectNameSingular={objectNameSingular}
+            />
+          )}
         </CommandMenuComponentInstanceContext.Provider>
       </ContextStoreComponentInstanceContext.Provider>
     </RecordComponentInstanceContextsWrapper>
