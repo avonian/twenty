@@ -275,6 +275,12 @@ export class WorkspaceEntity {
   @Column({ default: false })
   isInternalMessagesImportEnabled: boolean;
 
+  // When enabled, clicking a record always opens its full record page instead
+  // of the side panel, overriding each view's openRecordIn setting.
+  @Field()
+  @Column({ default: false })
+  isAlwaysOpenRecordInRecordPageEnabled: boolean;
+
   @Field(() => [String], { nullable: true })
   @Column({
     type: 'varchar',

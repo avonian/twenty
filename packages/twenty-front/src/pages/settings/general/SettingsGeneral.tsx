@@ -10,6 +10,7 @@ import { SettingsLogs } from '@/settings/event-logs/components/SettingsLogs';
 import { DeleteWorkspace } from '@/settings/profile/components/DeleteWorkspace';
 import { useHasPermissionFlag } from '@/settings/roles/hooks/useHasPermissionFlag';
 import { SettingsSecuritySettings } from '@/settings/security/components/SettingsSecuritySettings';
+import { SettingsAlwaysOpenRecordInRecordPageToggle } from '@/settings/workspace/components/SettingsAlwaysOpenRecordInRecordPageToggle';
 import { NameField } from '@/settings/workspace/components/NameField';
 import { WorkspaceLogoUploader } from '@/settings/workspace/components/WorkspaceLogoUploader';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
@@ -37,6 +38,10 @@ export const SettingsGeneral = () => {
 
   const hasSecurityPermission = useHasPermissionFlag(
     PermissionFlagType.SECURITY,
+  );
+
+  const hasWorkspacePermission = useHasPermissionFlag(
+    PermissionFlagType.WORKSPACE,
   );
 
   const tabs = [
@@ -69,6 +74,15 @@ export const SettingsGeneral = () => {
           <H2Title title={t`Name`} description={t`Name of your workspace`} />
           <NameField />
         </Section>
+        {hasWorkspacePermission && (
+          <Section>
+            <H2Title
+              title={t`Records`}
+              description={t`Choose how records open for everyone in this workspace`}
+            />
+            <SettingsAlwaysOpenRecordInRecordPageToggle />
+          </Section>
+        )}
         {isMultiWorkspaceEnabled && (
           <Section>
             <H2Title

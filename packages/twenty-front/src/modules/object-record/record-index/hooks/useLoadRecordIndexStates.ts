@@ -18,7 +18,9 @@ import { recordIndexCalendarFieldMetadataIdState } from '@/object-record/record-
 import { recordIndexFieldDefinitionsState } from '@/object-record/record-index/states/recordIndexFieldDefinitionsState';
 import { recordIndexGroupAggregateFieldMetadataItemComponentState } from '@/object-record/record-index/states/recordIndexGroupAggregateFieldMetadataItemComponentState';
 import { recordIndexGroupAggregateOperationComponentState } from '@/object-record/record-index/states/recordIndexGroupAggregateOperationComponentState';
+import { currentWorkspaceState } from '@/auth/states/currentWorkspaceState';
 import { recordIndexOpenRecordInState } from '@/object-record/record-index/states/recordIndexOpenRecordInState';
+import { ViewOpenRecordIn } from '~/generated-metadata/graphql';
 import { recordIndexShouldHideEmptyRecordGroupsComponentState } from '@/object-record/record-index/states/recordIndexShouldHideEmptyRecordGroupsComponentState';
 import { recordIndexViewTypeState } from '@/object-record/record-index/states/recordIndexViewTypeState';
 import { viewFieldAggregateOperationState } from '@/object-record/record-table/record-table-footer/states/viewFieldAggregateOperationState';
@@ -305,7 +307,17 @@ export const useLoadRecordIndexStates = () => {
 
           if (!skipGlobalIndexStates) {
             batchSet(recordIndexViewTypeState.atom, view.type);
-            batchSet(recordIndexOpenRecordInState.atom, view.openRecordIn);
+            // A workspace-wide setting can force records to always open in their
+            // full page, overriding each view's own openRecordIn setting.
+            const alwaysOpenRecordInRecordPage =
+              store.get(currentWorkspaceState.atom)
+                ?.isAlwaysOpenRecordInRecordPageEnabled === true;
+            batchSet(
+              recordIndexOpenRecordInState.atom,
+              alwaysOpenRecordInRecordPage
+                ? ViewOpenRecordIn.RECORD_PAGE
+                : view.openRecordIn,
+            );
 
             batchSet(
               recordIndexCalendarFieldMetadataIdState.atom,
