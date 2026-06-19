@@ -7,6 +7,7 @@ import {
 import { themeCssVariables } from 'twenty-ui-deprecated/theme-constants';
 
 import { FieldCommentsPanelFieldGroup } from '@/field-comments/components/FieldCommentsPanelFieldGroup';
+import { useIsFieldCommentableObject } from '@/field-comments/hooks/useIsFieldCommentableObject';
 import { useRecordFieldCommentThreads } from '@/field-comments/hooks/useRecordFieldCommentThreads';
 import { fieldCommentDefaultTargetState } from '@/field-comments/states/fieldCommentDefaultTargetState';
 import {
@@ -104,13 +105,16 @@ export const FieldCommentsPanel = ({
     fieldCommentDefaultTargetState,
   );
 
+  const isFieldCommentableObject =
+    useIsFieldCommentableObject(objectNameSingular);
+
   const { fieldGroups, refetch } = useRecordFieldCommentThreads({
     recordId,
     objectNameSingular,
-    skip: !fieldCommentsPanelOpen,
+    skip: !fieldCommentsPanelOpen || !isFieldCommentableObject,
   });
 
-  if (!fieldCommentsPanelOpen) {
+  if (!fieldCommentsPanelOpen || !isFieldCommentableObject) {
     return null;
   }
 

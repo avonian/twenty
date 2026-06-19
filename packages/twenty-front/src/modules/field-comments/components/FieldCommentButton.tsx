@@ -5,6 +5,7 @@ import { themeCssVariables } from 'twenty-ui-deprecated/theme-constants';
 import { isDefined } from 'twenty-shared/utils';
 
 import { FieldCommentPopover } from '@/field-comments/components/FieldCommentPopover';
+import { useIsFieldCommentableObject } from '@/field-comments/hooks/useIsFieldCommentableObject';
 import { useRecordFieldCommentThreads } from '@/field-comments/hooks/useRecordFieldCommentThreads';
 import { fieldCommentDefaultTargetState } from '@/field-comments/states/fieldCommentDefaultTargetState';
 import {
@@ -117,16 +118,22 @@ export const FieldCommentButton = ({ isHovered }: FieldCommentButtonProps) => {
       objectMetadataItem.fields.some((field) => field.id === fieldMetadataId),
     )?.nameSingular;
 
+  // Only objects that noteTarget can anchor to are commentable (e.g. note/task
+  // themselves are not) — otherwise the threads query filters on a join column
+  // that doesn't exist and the backend rejects it.
+  const isFieldCommentableObject =
+    useIsFieldCommentableObject(objectNameSingular);
+
   // Count is derived from a single record-wide query (deduped by Apollo across
   // every field's button), then grouped by field — this avoids per-field query
   // cache collisions where unrelated fields briefly showed a badge.
   const { fieldGroups } = useRecordFieldCommentThreads({
     recordId,
     objectNameSingular: objectNameSingular ?? '',
-    skip: !objectNameSingular || !fieldMetadataId,
+    skip: !objectNameSingular || !fieldMetadataId || !isFieldCommentableObject,
   });
 
-  if (!objectNameSingular || !fieldMetadataId) {
+  if (!objectNameSingular || !fieldMetadataId || !isFieldCommentableObject) {
     return null;
   }
 
