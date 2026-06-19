@@ -3,7 +3,8 @@ import { CoreObjectNameSingular } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
 
 import { getActivityTargetObjectFieldIdName } from '@/activities/utils/getActivityTargetObjectFieldIdName';
-import { FIELD_COMMENT_NOTE_TARGET_GQL_FIELDS } from '@/field-comments/constants/FieldCommentNoteTargetGqlFields';
+import { getFieldCommentNoteTargetGqlFields } from '@/field-comments/constants/FieldCommentNoteTargetGqlFields';
+import { useFieldCommentTypeField } from '@/field-comments/hooks/useFieldCommentTypeField';
 import { useRepliesByRootNoteId } from '@/field-comments/hooks/useRepliesByRootNoteId';
 import {
   type FieldCommentFieldGroup,
@@ -12,11 +13,6 @@ import {
 import { mapNoteTargetsToThreads } from '@/field-comments/utils/mapNoteTargetsToThreads';
 import { useObjectMetadataItems } from '@/object-metadata/hooks/useObjectMetadataItems';
 import { useFindManyRecords } from '@/object-record/hooks/useFindManyRecords';
-
-const RECORD_FIELD_COMMENT_NOTE_TARGET_GQL_FIELDS = {
-  ...FIELD_COMMENT_NOTE_TARGET_GQL_FIELDS,
-  targetFieldMetadataId: true,
-};
 
 type UseRecordFieldCommentThreadsParams = {
   recordId: string;
@@ -35,6 +31,9 @@ export const useRecordFieldCommentThreads = ({
     nameSingular: objectNameSingular,
   });
 
+  const { fieldCommentTypeField } = useFieldCommentTypeField();
+  const typeFieldName = fieldCommentTypeField?.name;
+
   const {
     records,
     loading,
@@ -45,7 +44,10 @@ export const useRecordFieldCommentThreads = ({
       [targetJoinColumn]: { eq: recordId },
       targetFieldMetadataId: { is: 'NOT_NULL' },
     },
-    recordGqlFields: RECORD_FIELD_COMMENT_NOTE_TARGET_GQL_FIELDS,
+    recordGqlFields: {
+      ...getFieldCommentNoteTargetGqlFields(typeFieldName),
+      targetFieldMetadataId: true,
+    },
     skip,
   });
 
@@ -83,11 +85,11 @@ export const useRecordFieldCommentThreads = ({
         return {
           fieldMetadataId,
           fieldLabel: field?.label ?? fieldMetadataId,
-          threads: mapNoteTargetsToThreads(noteTargets),
+          threads: mapNoteTargetsToThreads(noteTargets, typeFieldName),
         };
       })
       .filter((group) => group.threads.length > 0);
-  }, [records, objectMetadataItem]);
+  }, [records, objectMetadataItem, typeFieldName]);
 
   const rootNoteIds = useMemo(
     () =>

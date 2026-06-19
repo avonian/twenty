@@ -1,7 +1,10 @@
 import { useCallback } from 'react';
+import { isNonEmptyString } from '@sniptt/guards';
 import { CoreObjectNameSingular } from 'twenty-shared/types';
+import { isDefined } from 'twenty-shared/utils';
 
 import { getActivityTargetObjectFieldIdName } from '@/activities/utils/getActivityTargetObjectFieldIdName';
+import { useFieldCommentTypeField } from '@/field-comments/hooks/useFieldCommentTypeField';
 import { useCreateOneRecord } from '@/object-record/hooks/useCreateOneRecord';
 import { type ObjectRecord } from '@/object-record/types/ObjectRecord';
 
@@ -30,6 +33,8 @@ export const useCreateFieldComment = ({
     nameSingular: objectNameSingular,
   });
 
+  const { fieldCommentTypeField } = useFieldCommentTypeField();
+
   const { createOneRecord: createOneNote } = useCreateOneRecord({
     objectNameSingular: CoreObjectNameSingular.Note,
     recordGqlFields: CREATE_NOTE_GQL_FIELDS,
@@ -41,11 +46,19 @@ export const useCreateFieldComment = ({
   });
 
   const createFieldComment = useCallback(
-    async (text: string) => {
+    async (text: string, typeValue?: string | null) => {
+      // Persist the optional "Type" SELECT only when the field exists and a
+      // value was chosen — replies never carry it (separate composer).
+      const typeFieldPayload =
+        isDefined(fieldCommentTypeField) && isNonEmptyString(typeValue)
+          ? { [fieldCommentTypeField.name]: typeValue }
+          : {};
+
       const createdNote = await createOneNote({
         title: text,
         position: 0,
         updatedAt: new Date().toISOString(),
+        ...typeFieldPayload,
       } as Partial<ObjectRecord>);
 
       await createOneNoteTarget({
@@ -60,6 +73,7 @@ export const useCreateFieldComment = ({
       targetJoinColumn,
       recordId,
       fieldMetadataId,
+      fieldCommentTypeField,
     ],
   );
 

@@ -2,7 +2,8 @@ import { useCallback, useMemo } from 'react';
 import { CoreObjectNameSingular } from 'twenty-shared/types';
 
 import { getActivityTargetObjectFieldIdName } from '@/activities/utils/getActivityTargetObjectFieldIdName';
-import { FIELD_COMMENT_NOTE_TARGET_GQL_FIELDS } from '@/field-comments/constants/FieldCommentNoteTargetGqlFields';
+import { getFieldCommentNoteTargetGqlFields } from '@/field-comments/constants/FieldCommentNoteTargetGqlFields';
+import { useFieldCommentTypeField } from '@/field-comments/hooks/useFieldCommentTypeField';
 import { useRepliesByRootNoteId } from '@/field-comments/hooks/useRepliesByRootNoteId';
 import { type FieldCommentNoteTarget } from '@/field-comments/types/FieldComment';
 import { mapNoteTargetsToThreads } from '@/field-comments/utils/mapNoteTargetsToThreads';
@@ -25,6 +26,9 @@ export const useFieldCommentThreads = ({
     nameSingular: objectNameSingular,
   });
 
+  const { fieldCommentTypeField } = useFieldCommentTypeField();
+  const typeFieldName = fieldCommentTypeField?.name;
+
   const {
     records,
     loading,
@@ -35,13 +39,13 @@ export const useFieldCommentThreads = ({
       [targetJoinColumn]: { eq: recordId },
       targetFieldMetadataId: { eq: fieldMetadataId },
     },
-    recordGqlFields: FIELD_COMMENT_NOTE_TARGET_GQL_FIELDS,
+    recordGqlFields: getFieldCommentNoteTargetGqlFields(typeFieldName),
     skip,
   });
 
   const rootThreads = useMemo(
-    () => mapNoteTargetsToThreads(records),
-    [records],
+    () => mapNoteTargetsToThreads(records, typeFieldName),
+    [records, typeFieldName],
   );
 
   const rootNoteIds = useMemo(

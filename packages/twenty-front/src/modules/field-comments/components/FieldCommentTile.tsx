@@ -4,8 +4,11 @@ import { useLingui } from '@lingui/react/macro';
 import { IconArrowBackUp, IconCheck } from 'twenty-ui-deprecated/display';
 import { themeCssVariables } from 'twenty-ui-deprecated/theme-constants';
 import { isNonEmptyString } from '@sniptt/guards';
+import { isDefined } from 'twenty-shared/utils';
 
+import { useFieldCommentTypeField } from '@/field-comments/hooks/useFieldCommentTypeField';
 import { type FieldCommentThread } from '@/field-comments/types/FieldComment';
+import { SelectDisplay } from '@/ui/field/display/components/SelectDisplay';
 import { beautifyPastDateRelativeToNow } from '~/utils/date-utils';
 
 const StyledTile = styled.div`
@@ -34,6 +37,10 @@ const StyledAuthorAndTime = styled.div`
 const StyledAuthor = styled.span`
   color: ${themeCssVariables.font.color.secondary};
   font-weight: ${themeCssVariables.font.weight.medium};
+`;
+
+const StyledTypeBadge = styled.div`
+  display: flex;
 `;
 
 const StyledText = styled.div<{ isResolved: boolean }>`
@@ -111,8 +118,16 @@ export const FieldCommentTile = ({
   onToggleResolve,
 }: FieldCommentTileProps) => {
   const { t } = useLingui();
+  const { fieldCommentTypeField } = useFieldCommentTypeField();
   const [isReplying, setIsReplying] = useState(false);
   const [replyText, setReplyText] = useState('');
+
+  // Resolve the chosen "Type" SELECT option (when present) for a colored badge.
+  const typeOption = isDefined(thread.type)
+    ? fieldCommentTypeField?.options?.find(
+        (option) => option.value === thread.type,
+      )
+    : undefined;
 
   const handleSubmitReply = () => {
     if (!isNonEmptyString(replyText.trim())) {
@@ -140,6 +155,12 @@ export const FieldCommentTile = ({
           </StyledTextButton>
         </StyledActions>
       </StyledHeader>
+
+      {isDefined(typeOption) && (
+        <StyledTypeBadge>
+          <SelectDisplay color={typeOption.color} label={typeOption.label} />
+        </StyledTypeBadge>
+      )}
 
       <StyledText isResolved={thread.isResolved}>{thread.title}</StyledText>
 

@@ -103,8 +103,11 @@ export const FieldCommentPopover = ({
   const { replyToFieldComment } = useReplyToFieldComment();
   const { resolveFieldComment } = useResolveFieldComment();
 
-  const handleCreateComment = async (text: string) => {
-    await createFieldComment(text);
+  const handleCreateComment = async (
+    text: string,
+    typeValue: string | null,
+  ) => {
+    await createFieldComment(text, typeValue);
     await refetch();
   };
 

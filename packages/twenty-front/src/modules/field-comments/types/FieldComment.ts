@@ -1,6 +1,7 @@
 import { type FieldActorValue } from '@/object-record/record-field/ui/types/FieldMetadata';
 
 // A note used as a comment. Text lives in `title` for slice 1 (no rich text yet).
+// `type` is the value of the optional "Type" SELECT field, when present.
 export type FieldCommentNote = {
   id: string;
   title: string;
@@ -9,6 +10,7 @@ export type FieldCommentNote = {
   createdAt: string;
   createdBy: FieldActorValue;
   parentNoteId: string | null;
+  type: string | null;
 };
 
 // A reply note (subset of fields fetched via the parent note's `replies`).

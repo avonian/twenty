@@ -55,6 +55,7 @@ export const FieldCommentButton = ({ isHovered }: FieldCommentButtonProps) => {
   const fieldCommentDefaultTarget = useAtomStateValue(
     fieldCommentDefaultTargetState,
   );
+  const fieldCommentsPanelOpen = useAtomStateValue(fieldCommentsPanelOpenState);
   const setFieldCommentsPanelOpen = useSetAtomState(
     fieldCommentsPanelOpenState,
   );
@@ -139,7 +140,12 @@ export const FieldCommentButton = ({ isHovered }: FieldCommentButtonProps) => {
     return null;
   }
 
-  if (fieldCommentDefaultTarget === 'panel') {
+  // Adding the first comment to a field always happens in situ via the inline
+  // popover — even when the side panel is the default target — so you can
+  // comment in the context of the field rather than over in the panel.
+  const isAddingNewComment = !hasComments;
+
+  if (fieldCommentDefaultTarget === 'panel' && !isAddingNewComment) {
     const handleOpenPanel = () => {
       setFieldCommentsPanelFocusFieldMetadataId(fieldMetadataId);
       setFieldCommentsPanelOpen(true);
@@ -164,9 +170,18 @@ export const FieldCommentButton = ({ isHovered }: FieldCommentButtonProps) => {
   // open two overlaid popovers.
   const dropdownId = `field-comment-${anchorId ?? `${recordId}-${fieldMetadataId}`}`;
 
+  // When the inline popover opens to add a new comment, unpin the side panel so
+  // the thread shows in situ instead of behind the (still pinned) panel.
+  const handlePopoverOpen = () => {
+    if (isAddingNewComment && fieldCommentsPanelOpen) {
+      setFieldCommentsPanelOpen(false);
+    }
+  };
+
   return (
     <Dropdown
       dropdownId={dropdownId}
+      onOpen={handlePopoverOpen}
       dropdownPlacement="bottom-start"
       clickableComponent={
         <StyledButton

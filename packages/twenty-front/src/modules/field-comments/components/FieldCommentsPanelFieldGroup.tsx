@@ -76,8 +76,11 @@ export const FieldCommentsPanelFieldGroup = ({
     }
   }, [isFocused]);
 
-  const handleCreateComment = async (text: string) => {
-    await createFieldComment(text);
+  const handleCreateComment = async (
+    text: string,
+    typeValue: string | null,
+  ) => {
+    await createFieldComment(text, typeValue);
     await onMutated();
   };
 

@@ -28,14 +28,22 @@ const unwrapReplies = (replies: unknown): FieldCommentReply[] => {
 };
 
 // Each noteTarget anchors one root comment; the root note's `replies` is the
-// thread. Shared by the per-field and record-wide hooks.
+// thread. Shared by the per-field and record-wide hooks. When the Note object
+// has an optional "Type" SELECT field, its (dynamically-named) value is
+// normalized onto `type` for display.
 export const mapNoteTargetsToThreads = (
   noteTargets: FieldCommentNoteTarget[],
+  typeFieldName?: string,
 ): FieldCommentThread[] =>
   noteTargets
     .map((noteTarget) => noteTarget.note)
     .filter(isDefined)
     .map((note) => ({
       ...note,
+      type: isDefined(typeFieldName)
+        ? (((note as Record<string, unknown>)[typeFieldName] as
+            | string
+            | null) ?? null)
+        : null,
       replies: unwrapReplies((note as { replies?: unknown }).replies),
     }));
