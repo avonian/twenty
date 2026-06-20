@@ -1,5 +1,6 @@
 import { styled } from '@linaria/react';
 
+import { NoteFieldCommentTargetsPrefetchEffect } from '@/field-comments/components/NoteFieldCommentTargetsPrefetchEffect';
 import { RecordBoardContainer } from '@/object-record/record-board/components/RecordBoardContainer';
 import { RecordIndexTableContainer } from '@/object-record/record-index/components/RecordIndexTableContainer';
 import { recordIndexViewTypeState } from '@/object-record/record-index/states/recordIndexViewTypeState';
@@ -47,6 +48,9 @@ export const RecordIndexContainer = () => {
       ) : (
         <>
           <RecordIndexFiltersToContextStoreEffect />
+          <NoteFieldCommentTargetsPrefetchEffect
+            objectNameSingular={objectNameSingular}
+          />
           {recordIndexViewType === ViewType.TABLE && (
             <RecordIndexTableContainer recordTableId={recordIndexId} />
           )}

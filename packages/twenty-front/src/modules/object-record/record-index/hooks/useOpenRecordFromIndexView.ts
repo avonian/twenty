@@ -12,9 +12,12 @@ import { useAtomComponentStateCallbackState } from '@/ui/utilities/state/jotai/h
 import { ViewOpenRecordIn } from '~/generated-metadata/graphql';
 import { useStore } from 'jotai';
 import { useCallback } from 'react';
-import { AppPath } from 'twenty-shared/types';
+import { AppPath, CoreObjectNameSingular } from 'twenty-shared/types';
 import { useIsMobile } from 'twenty-ui-deprecated/utilities';
 import { useNavigateApp } from '~/hooks/useNavigateApp';
+import { FIELD_COMMENT_DEEP_LINK_PARAM } from '@/field-comments/constants/FieldCommentDeepLinkParam';
+import { IS_FIELD_COMMENTS_ENABLED } from '@/field-comments/constants/IsFieldCommentsEnabled';
+import { noteFieldCommentTargetByNoteIdState } from '@/field-comments/states/noteFieldCommentTargetByNoteIdState';
 
 export const useOpenRecordFromIndexView = () => {
   const { recordIndexId } = useRecordIndexContextOrThrow();
@@ -47,6 +50,35 @@ export const useOpenRecordFromIndexView = () => {
 
   const openRecordFromIndexView = useCallback(
     ({ recordId }: { recordId: string }) => {
+      // From the Notes index, a field-comment note opens nowhere useful on its
+      // own — jump straight to the record it's anchored to and highlight the
+      // thread there instead.
+      if (
+        IS_FIELD_COMMENTS_ENABLED &&
+        objectNameSingular === CoreObjectNameSingular.Note
+      ) {
+        const fieldCommentTarget = store.get(
+          noteFieldCommentTargetByNoteIdState.atom,
+        )[recordId];
+
+        if (fieldCommentTarget !== undefined) {
+          closeSidePanelMenu();
+          navigate(
+            AppPath.RecordShowPage,
+            {
+              objectNameSingular: fieldCommentTarget.objectNameSingular,
+              objectRecordId: fieldCommentTarget.recordId,
+            },
+            {
+              [FIELD_COMMENT_DEEP_LINK_PARAM]:
+                fieldCommentTarget.fieldMetadataId,
+            },
+          );
+
+          return;
+        }
+      }
+
       const recordIndexOpenRecordIn = store.get(
         recordIndexOpenRecordInState.atom,
       );
