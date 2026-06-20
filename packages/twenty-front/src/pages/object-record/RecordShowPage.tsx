@@ -1,7 +1,9 @@
 import { useParams } from 'react-router-dom';
 
 import { SidePanelToggleButton } from '@/side-panel/components/SidePanelToggleButton';
+import { FieldCommentDeepLinkEffect } from '@/field-comments/components/FieldCommentDeepLinkEffect';
 import { FieldCommentsPanel } from '@/field-comments/components/FieldCommentsPanel';
+import { NoteFieldCommentJumpBanner } from '@/field-comments/components/NoteFieldCommentJumpBanner';
 import { IS_FIELD_COMMENTS_ENABLED } from '@/field-comments/constants/IsFieldCommentsEnabled';
 import { RecordShowCommandMenu } from '@/command-menu-item/components/RecordShowCommandMenu';
 import { CommandMenuComponentInstanceContext } from '@/command-menu/states/contexts/CommandMenuComponentInstanceContext';
@@ -18,6 +20,7 @@ import { PageCardLayout } from '@/ui/layout/page/components/PageCardLayout';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { RecordShowPageHeader } from '~/pages/object-record/RecordShowPageHeader';
 import { RecordShowPageTitle } from '~/pages/object-record/RecordShowPageTitle';
+import { CoreObjectNameSingular } from 'twenty-shared/types';
 
 export const RecordShowPage = () => {
   const isLayoutCustomizationModeEnabled = useAtomStateValue(
@@ -67,6 +70,10 @@ export const RecordShowPage = () => {
                 recordId: objectRecordId,
               }}
             >
+              {IS_FIELD_COMMENTS_ENABLED &&
+                objectNameSingular === CoreObjectNameSingular.Note && (
+                  <NoteFieldCommentJumpBanner noteId={objectRecordId} />
+                )}
               <PageLayoutRecordPageRenderer
                 targetRecordIdentifier={{
                   id: objectRecordId,
@@ -81,10 +88,13 @@ export const RecordShowPage = () => {
             </TimelineActivityContext.Provider>
           </PageCardLayout>
           {IS_FIELD_COMMENTS_ENABLED && (
-            <FieldCommentsPanel
-              recordId={objectRecordId}
-              objectNameSingular={objectNameSingular}
-            />
+            <>
+              <FieldCommentDeepLinkEffect />
+              <FieldCommentsPanel
+                recordId={objectRecordId}
+                objectNameSingular={objectNameSingular}
+              />
+            </>
           )}
         </CommandMenuComponentInstanceContext.Provider>
       </ContextStoreComponentInstanceContext.Provider>
