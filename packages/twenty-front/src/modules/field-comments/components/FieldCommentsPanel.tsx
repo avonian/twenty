@@ -1,4 +1,6 @@
+import { isNonEmptyString } from '@sniptt/guards';
 import { styled } from '@linaria/react';
+import { useEffect, useState } from 'react';
 import { useLingui } from '@lingui/react/macro';
 import {
   IconLayoutSidebarRightCollapse,
@@ -72,7 +74,9 @@ const StyledBody = styled.div`
   display: flex;
   flex: 1;
   flex-direction: column;
+  gap: ${themeCssVariables.spacing[2]};
   overflow-y: auto;
+  padding: ${themeCssVariables.spacing[2]};
 `;
 
 const StyledEmptyState = styled.div`
@@ -114,9 +118,28 @@ export const FieldCommentsPanel = ({
     skip: !fieldCommentsPanelOpen || !isFieldCommentableObject,
   });
 
+  // Accordion: only one field's thread group is expanded at a time, so each
+  // conversation reads as its own compartment.
+  const [expandedFieldMetadataId, setExpandedFieldMetadataId] = useState<
+    string | null
+  >(null);
+
+  // Expand the focused field (deep-link or clicking a field's comment icon).
+  useEffect(() => {
+    if (isNonEmptyString(fieldCommentsPanelFocusFieldMetadataId)) {
+      setExpandedFieldMetadataId(fieldCommentsPanelFocusFieldMetadataId);
+    }
+  }, [fieldCommentsPanelFocusFieldMetadataId]);
+
   if (!fieldCommentsPanelOpen || !isFieldCommentableObject) {
     return null;
   }
+
+  const handleToggleExpand = (fieldMetadataId: string) => {
+    setExpandedFieldMetadataId((current) =>
+      current === fieldMetadataId ? null : fieldMetadataId,
+    );
+  };
 
   const handleClose = () => {
     setFieldCommentsPanelOpen(false);
@@ -162,6 +185,8 @@ export const FieldCommentsPanel = ({
               isFocused={
                 group.fieldMetadataId === fieldCommentsPanelFocusFieldMetadataId
               }
+              isExpanded={group.fieldMetadataId === expandedFieldMetadataId}
+              onToggleExpand={() => handleToggleExpand(group.fieldMetadataId)}
               onMutated={refetch}
             />
           ))

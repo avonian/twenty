@@ -1,5 +1,9 @@
 import { styled } from '@linaria/react';
 import { useEffect, useRef } from 'react';
+import {
+  IconChevronDown,
+  IconChevronRight,
+} from 'twenty-ui-deprecated/display';
 import { themeCssVariables } from 'twenty-ui-deprecated/theme-constants';
 
 import { FieldCommentComposer } from '@/field-comments/components/FieldCommentComposer';
@@ -17,19 +21,54 @@ import { useSetAtomState } from '@/ui/utilities/state/jotai/hooks/useSetAtomStat
 
 const StyledGroup = styled.div<{ isHighlighted: boolean }>`
   background: ${({ isHighlighted }) =>
-    isHighlighted ? themeCssVariables.color.yellow3 : 'transparent'};
-  border-bottom: 1px solid ${themeCssVariables.border.color.light};
+    isHighlighted
+      ? themeCssVariables.color.yellow3
+      : themeCssVariables.background.primary};
+  border: 1px solid ${themeCssVariables.border.color.medium};
+  border-radius: ${themeCssVariables.border.radius.sm};
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 `;
 
-const StyledGroupHeader = styled.div`
-  color: ${themeCssVariables.font.color.tertiary};
+const StyledGroupHeader = styled.button`
+  align-items: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  font-family: inherit;
+  gap: ${themeCssVariables.spacing[1]};
+  padding: ${themeCssVariables.spacing[2]};
+  width: 100%;
+
+  &:hover {
+    background: ${themeCssVariables.background.transparent.light};
+  }
+`;
+
+const StyledFieldLabel = styled.span`
+  color: ${themeCssVariables.font.color.secondary};
   font-size: ${themeCssVariables.font.size.xs};
   font-weight: ${themeCssVariables.font.weight.semiBold};
   letter-spacing: 0.04em;
-  padding: ${themeCssVariables.spacing[2]} ${themeCssVariables.spacing[2]} 0;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
   text-transform: uppercase;
+  white-space: nowrap;
+`;
+
+const StyledCount = styled.span`
+  color: ${themeCssVariables.font.color.tertiary};
+  font-size: ${themeCssVariables.font.size.xs};
+  margin-left: auto;
+`;
+
+const StyledGroupBody = styled.div`
+  border-top: 1px solid ${themeCssVariables.border.color.light};
+  display: flex;
+  flex-direction: column;
 `;
 
 type FieldCommentsPanelFieldGroupProps = {
@@ -37,6 +76,8 @@ type FieldCommentsPanelFieldGroupProps = {
   recordId: string;
   objectNameSingular: string;
   isFocused: boolean;
+  isExpanded: boolean;
+  onToggleExpand: () => void;
   onMutated: () => Promise<unknown>;
 };
 
@@ -45,6 +86,8 @@ export const FieldCommentsPanelFieldGroup = ({
   recordId,
   objectNameSingular,
   isFocused,
+  isExpanded,
+  onToggleExpand,
   onMutated,
 }: FieldCommentsPanelFieldGroupProps) => {
   const groupRef = useRef<HTMLDivElement>(null);
@@ -69,12 +112,12 @@ export const FieldCommentsPanelFieldGroup = ({
   const { replyToFieldComment } = useReplyToFieldComment();
   const { resolveFieldComment } = useResolveFieldComment();
 
-  // Scroll the field that was clicked into view when the panel opens.
+  // Scroll the field that was clicked into view when the panel opens / expands.
   useEffect(() => {
-    if (isFocused) {
+    if (isFocused && isExpanded) {
       groupRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
     }
-  }, [isFocused]);
+  }, [isFocused, isExpanded]);
 
   const handleCreateComment = async (
     text: string,
@@ -106,18 +149,30 @@ export const FieldCommentsPanelFieldGroup = ({
       }
       onMouseLeave={() => setFieldCommentsHoveredFromPanelFieldMetadataId(null)}
     >
-      <StyledGroupHeader>{group.fieldLabel}</StyledGroupHeader>
-      {group.threads.map((thread) => (
-        <FieldCommentTile
-          key={thread.id}
-          thread={thread}
-          onReply={(text) => handleReply(thread.id, text)}
-          onToggleResolve={(isResolved) =>
-            handleToggleResolve(thread.id, isResolved)
-          }
-        />
-      ))}
-      <FieldCommentComposer onSubmit={handleCreateComment} />
+      <StyledGroupHeader type="button" onClick={onToggleExpand}>
+        {isExpanded ? (
+          <IconChevronDown size={14} />
+        ) : (
+          <IconChevronRight size={14} />
+        )}
+        <StyledFieldLabel>{group.fieldLabel}</StyledFieldLabel>
+        <StyledCount>{group.threads.length}</StyledCount>
+      </StyledGroupHeader>
+      {isExpanded && (
+        <StyledGroupBody>
+          {group.threads.map((thread) => (
+            <FieldCommentTile
+              key={thread.id}
+              thread={thread}
+              onReply={(text) => handleReply(thread.id, text)}
+              onToggleResolve={(isResolved) =>
+                handleToggleResolve(thread.id, isResolved)
+              }
+            />
+          ))}
+          <FieldCommentComposer onSubmit={handleCreateComment} />
+        </StyledGroupBody>
+      )}
     </StyledGroup>
   );
 };
