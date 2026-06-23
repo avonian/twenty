@@ -1,3 +1,5 @@
+import { PrintBriefingButton } from '@/evento-briefing/components/PrintBriefingButton';
+import { EVENTO_BRIEFING_OBJECT_NAME_SINGULAR } from '@/evento-briefing/constants/EventoBriefingObjectNameSingular';
 import { getObjectMetadataIdentifierFields } from '@/object-metadata/utils/getObjectMetadataIdentifierFields';
 import { ObjectRecordShowPageBreadcrumb } from '@/object-record/record-show/components/ObjectRecordShowPageBreadcrumb';
 import { useRecordShowPagePagination } from '@/object-record/record-show/hooks/useRecordShowPagePagination';
@@ -30,7 +32,14 @@ export const RecordShowPageHeader = ({
           labelIdentifierFieldMetadataItem={labelIdentifierFieldMetadataItem}
         />
       }
-      actionButton={children}
+      actionButton={
+        <>
+          {children}
+          {objectNameSingular === EVENTO_BRIEFING_OBJECT_NAME_SINGULAR && (
+            <PrintBriefingButton eventoId={objectRecordId} />
+          )}
+        </>
+      }
     />
   );
 };
