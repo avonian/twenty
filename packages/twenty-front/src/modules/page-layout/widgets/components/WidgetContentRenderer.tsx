@@ -1,3 +1,8 @@
+import { NOTE_BUCKET } from '@/field-comments/constants/NoteBucket';
+import { EventoNotesTable } from '@/load-related-notes/components/EventoNotesTable';
+import { EVENTO_OBJECTIVES_WIDGET_TITLE } from '@/load-related-notes/constants/EventoObjectivesWidgetTitle';
+import { IS_LOAD_RELATED_NOTES_ENABLED } from '@/load-related-notes/constants/IsLoadRelatedNotesEnabled';
+import { LOAD_RELATED_NOTES_OBJECT_NAME_SINGULAR } from '@/load-related-notes/constants/LoadRelatedNotesObjectNameSingular';
 import { type PageLayoutWidget } from '@/page-layout/types/PageLayoutWidget';
 import { CalendarWidget } from '@/page-layout/widgets/calendar/components/CalendarWidget';
 import { EmailThreadWidget } from '@/page-layout/widgets/email-thread/components/EmailThreadWidget';
@@ -17,6 +22,8 @@ import { WorkflowRunWidget } from '@/page-layout/widgets/workflow/components/Wor
 import { WorkflowVersionWidget } from '@/page-layout/widgets/workflow/components/WorkflowVersionWidget';
 import { RecordTableWidgetRenderer } from '@/page-layout/widgets/record-table/components/RecordTableWidgetRenderer';
 import { WorkflowWidget } from '@/page-layout/widgets/workflow/components/WorkflowWidget';
+import { useLayoutRenderingContext } from '@/ui/layout/contexts/LayoutRenderingContext';
+import { isDefined } from 'twenty-shared/utils';
 import { WidgetType } from '~/generated-metadata/graphql';
 
 type WidgetContentRendererProps = {
@@ -26,6 +33,26 @@ type WidgetContentRendererProps = {
 export const WidgetContentRenderer = ({
   widget,
 }: WidgetContentRendererProps) => {
+  const { targetRecordIdentifier } = useLayoutRenderingContext();
+
+  // Flamagas: the evento Objetivos tab is hosted on a FIELD widget (NOTES
+  // widgets can't be created via the API) — intercept it by title and render
+  // the objectives table instead of the field.
+  if (
+    IS_LOAD_RELATED_NOTES_ENABLED &&
+    isDefined(targetRecordIdentifier) &&
+    targetRecordIdentifier.targetObjectNameSingular ===
+      LOAD_RELATED_NOTES_OBJECT_NAME_SINGULAR &&
+    widget.title === EVENTO_OBJECTIVES_WIDGET_TITLE
+  ) {
+    return (
+      <EventoNotesTable
+        eventoId={targetRecordIdentifier.id}
+        bucket={NOTE_BUCKET.OBJECTIVE}
+      />
+    );
+  }
+
   switch (widget.type) {
     case WidgetType.GRAPH:
       return <GraphWidgetRenderer widget={widget} />;

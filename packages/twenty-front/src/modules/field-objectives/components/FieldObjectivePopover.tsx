@@ -5,18 +5,19 @@ import { themeCssVariables } from 'twenty-ui-deprecated/theme-constants';
 
 import { FieldCommentComposer } from '@/field-comments/components/FieldCommentComposer';
 import { FieldCommentTile } from '@/field-comments/components/FieldCommentTile';
+import { NOTE_BUCKET } from '@/field-comments/constants/NoteBucket';
 import { useCreateFieldComment } from '@/field-comments/hooks/useCreateFieldComment';
 import { useFieldCommentThreads } from '@/field-comments/hooks/useFieldCommentThreads';
 import { useReplyToFieldComment } from '@/field-comments/hooks/useReplyToFieldComment';
 import { useResolveFieldComment } from '@/field-comments/hooks/useResolveFieldComment';
 import { fieldCommentDefaultTargetState } from '@/field-comments/states/fieldCommentDefaultTargetState';
+import { fieldCommentsPanelOpenState } from '@/field-comments/states/fieldCommentsPanelState';
 import {
-  fieldCommentsPanelFocusFieldMetadataIdState,
-  fieldCommentsPanelOpenState,
-} from '@/field-comments/states/fieldCommentsPanelState';
-import { fieldObjectivesPanelOpenState } from '@/field-objectives/states/fieldObjectivesPanelState';
-import { useSetAtomState } from '@/ui/utilities/state/jotai/hooks/useSetAtomState';
+  fieldObjectivesPanelFocusFieldMetadataIdState,
+  fieldObjectivesPanelOpenState,
+} from '@/field-objectives/states/fieldObjectivesPanelState';
 import { OverlayContainer } from '@/ui/layout/overlay/components/OverlayContainer';
+import { useSetAtomState } from '@/ui/utilities/state/jotai/hooks/useSetAtomState';
 
 const StyledPopover = styled(OverlayContainer)`
   align-items: stretch;
@@ -66,48 +67,50 @@ const StyledEmptyState = styled.div`
   text-align: center;
 `;
 
-type FieldCommentPopoverProps = {
+type FieldObjectivePopoverProps = {
   recordId: string;
   objectNameSingular: string;
   fieldMetadataId: string;
 };
 
-export const FieldCommentPopover = ({
+export const FieldObjectivePopover = ({
   recordId,
   objectNameSingular,
   fieldMetadataId,
-}: FieldCommentPopoverProps) => {
+}: FieldObjectivePopoverProps) => {
   const { t } = useLingui();
 
   const setFieldCommentDefaultTarget = useSetAtomState(
     fieldCommentDefaultTargetState,
   );
-  const setFieldCommentsPanelOpen = useSetAtomState(
-    fieldCommentsPanelOpenState,
-  );
-  const setFieldCommentsPanelFocusFieldMetadataId = useSetAtomState(
-    fieldCommentsPanelFocusFieldMetadataIdState,
-  );
   const setFieldObjectivesPanelOpen = useSetAtomState(
     fieldObjectivesPanelOpenState,
+  );
+  const setFieldObjectivesPanelFocusFieldMetadataId = useSetAtomState(
+    fieldObjectivesPanelFocusFieldMetadataIdState,
+  );
+  const setFieldCommentsPanelOpen = useSetAtomState(
+    fieldCommentsPanelOpenState,
   );
 
   const { threads, refetch } = useFieldCommentThreads({
     recordId,
     objectNameSingular,
     fieldMetadataId,
+    bucket: NOTE_BUCKET.OBJECTIVE,
   });
 
   const { createFieldComment } = useCreateFieldComment({
     recordId,
     objectNameSingular,
     fieldMetadataId,
+    bucket: NOTE_BUCKET.OBJECTIVE,
   });
 
   const { replyToFieldComment } = useReplyToFieldComment();
   const { resolveFieldComment } = useResolveFieldComment();
 
-  const handleCreateComment = async (
+  const handleCreateObjective = async (
     text: string,
     typeValue: string | null,
   ) => {
@@ -128,18 +131,17 @@ export const FieldCommentPopover = ({
     await refetch();
   };
 
-  // Switch the user's default to the side panel and reveal it focused on this field.
   const handleOpenInPanel = () => {
-    setFieldObjectivesPanelOpen(false);
+    setFieldCommentsPanelOpen(false);
     setFieldCommentDefaultTarget('panel');
-    setFieldCommentsPanelFocusFieldMetadataId(fieldMetadataId);
-    setFieldCommentsPanelOpen(true);
+    setFieldObjectivesPanelFocusFieldMetadataId(fieldMetadataId);
+    setFieldObjectivesPanelOpen(true);
   };
 
   return (
     <StyledPopover>
       <StyledHeader>
-        {t`Comments`}
+        {t`Objectives`}
         <StyledHeaderButton
           type="button"
           title={t`Open in side panel`}
@@ -150,7 +152,7 @@ export const FieldCommentPopover = ({
       </StyledHeader>
       <StyledThreadList>
         {threads.length === 0 ? (
-          <StyledEmptyState>{t`No comments yet`}</StyledEmptyState>
+          <StyledEmptyState>{t`No objectives yet`}</StyledEmptyState>
         ) : (
           threads.map((thread) => (
             <FieldCommentTile
@@ -164,7 +166,12 @@ export const FieldCommentPopover = ({
           ))
         )}
       </StyledThreadList>
-      <FieldCommentComposer autoFocus onSubmit={handleCreateComment} />
+      <FieldCommentComposer
+        autoFocus
+        showTypeField={false}
+        placeholder={t`Add an objective...`}
+        onSubmit={handleCreateObjective}
+      />
     </StyledPopover>
   );
 };

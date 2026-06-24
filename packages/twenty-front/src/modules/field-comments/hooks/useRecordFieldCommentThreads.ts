@@ -4,25 +4,33 @@ import { isDefined } from 'twenty-shared/utils';
 
 import { getActivityTargetObjectFieldIdName } from '@/activities/utils/getActivityTargetObjectFieldIdName';
 import { getFieldCommentNoteTargetGqlFields } from '@/field-comments/constants/FieldCommentNoteTargetGqlFields';
+import {
+  NOTE_BUCKET,
+  type NoteBucketValue,
+} from '@/field-comments/constants/NoteBucket';
 import { useFieldCommentTypeField } from '@/field-comments/hooks/useFieldCommentTypeField';
+import { useNoteBucketField } from '@/field-comments/hooks/useNoteBucketField';
 import { useRepliesByRootNoteId } from '@/field-comments/hooks/useRepliesByRootNoteId';
 import {
   type FieldCommentFieldGroup,
   type FieldCommentRecordNoteTarget,
 } from '@/field-comments/types/FieldComment';
 import { mapNoteTargetsToThreads } from '@/field-comments/utils/mapNoteTargetsToThreads';
+import { noteTargetMatchesBucket } from '@/field-comments/utils/noteTargetMatchesBucket';
 import { useObjectMetadataItems } from '@/object-metadata/hooks/useObjectMetadataItems';
 import { useFindManyRecords } from '@/object-record/hooks/useFindManyRecords';
 
 type UseRecordFieldCommentThreadsParams = {
   recordId: string;
   objectNameSingular: string;
+  bucket?: NoteBucketValue;
   skip?: boolean;
 };
 
 export const useRecordFieldCommentThreads = ({
   recordId,
   objectNameSingular,
+  bucket = NOTE_BUCKET.NOTE,
   skip,
 }: UseRecordFieldCommentThreadsParams) => {
   const { objectMetadataItems } = useObjectMetadataItems();
@@ -33,6 +41,9 @@ export const useRecordFieldCommentThreads = ({
 
   const { fieldCommentTypeField } = useFieldCommentTypeField();
   const typeFieldName = fieldCommentTypeField?.name;
+
+  const { noteBucketField } = useNoteBucketField();
+  const bucketFieldName = noteBucketField?.name;
 
   const {
     records,
@@ -45,7 +56,7 @@ export const useRecordFieldCommentThreads = ({
       targetFieldMetadataId: { is: 'NOT_NULL' },
     },
     recordGqlFields: {
-      ...getFieldCommentNoteTargetGqlFields(typeFieldName),
+      ...getFieldCommentNoteTargetGqlFields(typeFieldName, bucketFieldName),
       targetFieldMetadataId: true,
     },
     skip,
@@ -71,6 +82,9 @@ export const useRecordFieldCommentThreads = ({
       if (!isDefined(fieldMetadataId)) {
         continue;
       }
+      if (!noteTargetMatchesBucket(noteTarget, bucketFieldName, bucket)) {
+        continue;
+      }
       const existing = noteTargetsByFieldMetadataId.get(fieldMetadataId) ?? [];
       existing.push(noteTarget);
       noteTargetsByFieldMetadataId.set(fieldMetadataId, existing);
@@ -89,7 +103,7 @@ export const useRecordFieldCommentThreads = ({
         };
       })
       .filter((group) => group.threads.length > 0);
-  }, [records, objectMetadataItem, typeFieldName]);
+  }, [records, objectMetadataItem, typeFieldName, bucketFieldName, bucket]);
 
   const rootNoteIds = useMemo(
     () =>

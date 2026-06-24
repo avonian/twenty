@@ -2,6 +2,7 @@ import { isDefined } from 'twenty-shared/utils';
 
 import { EVENTO_BRIEFING_OBJECT_NAME_SINGULAR } from '@/evento-briefing/constants/EventoBriefingObjectNameSingular';
 import { type EventoBriefingData } from '@/evento-briefing/types/EventoBriefingData';
+import { NOTE_BUCKET } from '@/field-comments/constants/NoteBucket';
 import { useEventoRelatedNotes } from '@/load-related-notes/hooks/useEventoRelatedNotes';
 import { useObjectMetadataItem } from '@/object-metadata/hooks/useObjectMetadataItem';
 import { useFindManyRecords } from '@/object-record/hooks/useFindManyRecords';
@@ -150,11 +151,15 @@ export const useEventoBriefingData = (
   const { rows: notes, loading: loadingNotes } =
     useEventoRelatedNotes(eventoId);
 
+  const { rows: objectives, loading: loadingObjectives } =
+    useEventoRelatedNotes(eventoId, NOTE_BUCKET.OBJECTIVE);
+
   const isReady =
     isDefined(evento) &&
     !loadingEvento &&
     !loadingPerformances &&
-    !loadingNotes;
+    !loadingNotes &&
+    !loadingObjectives;
 
   if (!isReady) {
     return { data: null, isReady: false };
@@ -213,6 +218,12 @@ export const useEventoBriefingData = (
       tipoLabel: note.tipoLabel,
       comentario: note.comentario,
       createdBy: note.createdBy,
+    })),
+    objectives: objectives.map((objective) => ({
+      nombre: objective.nombre,
+      tipoLabel: objective.tipoLabel,
+      comentario: objective.comentario,
+      createdBy: objective.createdBy,
     })),
   };
 

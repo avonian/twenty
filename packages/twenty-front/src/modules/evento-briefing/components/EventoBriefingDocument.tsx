@@ -57,6 +57,8 @@ const styles = StyleSheet.create({
   colTipo: { width: '16%', paddingRight: 4 },
   colComentario: { width: '38%', paddingRight: 4 },
   colCreador: { width: '18%' },
+  colObjNombre: { width: '34%', paddingRight: 4 },
+  colObjTexto: { width: '48%', paddingRight: 4 },
 });
 
 const formatText = (value: string | null) =>
@@ -104,7 +106,7 @@ type EventoBriefingDocumentProps = { data: EventoBriefingData };
 export const EventoBriefingDocument = ({
   data,
 }: EventoBriefingDocumentProps) => {
-  const { evento, distribuidor, pais, performances, notes } = data;
+  const { evento, distribuidor, pais, performances, notes, objectives } = data;
 
   return (
     <Document title={`Briefing - ${evento.name}`}>
@@ -262,6 +264,37 @@ export const EventoBriefingDocument = ({
             </View>
           ) : (
             <Text style={styles.muted}>Sin notas.</Text>
+          )}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Objetivos</Text>
+          {objectives.length > 0 ? (
+            <View>
+              <View style={styles.tableHeader}>
+                <Text style={[styles.th, styles.colObjNombre]}>Nombre</Text>
+                <Text style={[styles.th, styles.colObjTexto]}>Objetivo</Text>
+                <Text style={[styles.th, styles.colCreador]}>Creado por</Text>
+              </View>
+              {objectives.map((objective, index) => (
+                <View
+                  style={styles.tableRow}
+                  key={`${objective.nombre}-${index}`}
+                >
+                  <Text style={styles.colObjNombre}>
+                    {formatText(objective.nombre)}
+                  </Text>
+                  <Text style={styles.colObjTexto}>
+                    {formatText(objective.comentario)}
+                  </Text>
+                  <Text style={styles.colCreador}>
+                    {formatText(objective.createdBy)}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.muted}>Sin objetivos.</Text>
           )}
         </View>
       </Page>

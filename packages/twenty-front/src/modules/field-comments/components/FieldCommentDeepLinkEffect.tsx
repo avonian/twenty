@@ -9,6 +9,7 @@ import {
   fieldCommentsPanelFocusFieldMetadataIdState,
   fieldCommentsPanelOpenState,
 } from '@/field-comments/states/fieldCommentsPanelState';
+import { fieldObjectivesPanelOpenState } from '@/field-objectives/states/fieldObjectivesPanelState';
 import { useSetAtomState } from '@/ui/utilities/state/jotai/hooks/useSetAtomState';
 
 // How long the deep-linked thread stays highlighted before fading on its own.
@@ -41,6 +42,9 @@ export const FieldCommentDeepLinkEffect = () => {
   const setFieldCommentsHoveredFromPanelFieldMetadataId = useSetAtomState(
     fieldCommentsHoveredFromPanelFieldMetadataIdState,
   );
+  const setFieldObjectivesPanelOpen = useSetAtomState(
+    fieldObjectivesPanelOpenState,
+  );
 
   // Consume the deep-link param once: remember the field, then strip the param
   // so a refresh / back-navigation doesn't re-trigger the highlight.
@@ -64,6 +68,7 @@ export const FieldCommentDeepLinkEffect = () => {
       return;
     }
 
+    setFieldObjectivesPanelOpen(false);
     setFieldCommentsPanelOpen(true);
     setFieldCommentsPanelFocusFieldMetadataId(highlightedFieldMetadataId);
     // Highlight both sides: the panel card (via the form-hover atom) and the

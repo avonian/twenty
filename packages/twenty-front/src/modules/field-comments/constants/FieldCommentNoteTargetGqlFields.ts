@@ -8,7 +8,12 @@ import { isDefined } from 'twenty-shared/utils';
 //
 // When the Note object has an optional "Type" SELECT field, its name is passed
 // in so the value is fetched alongside the root note for display on the tile.
-export const getFieldCommentNoteTargetGqlFields = (typeFieldName?: string) => ({
+// The "Bucket" field name is passed similarly so callers can split comments
+// from objectives client-side.
+export const getFieldCommentNoteTargetGqlFields = (
+  typeFieldName?: string,
+  bucketFieldName?: string,
+) => ({
   id: true,
   note: {
     id: true,
@@ -19,5 +24,6 @@ export const getFieldCommentNoteTargetGqlFields = (typeFieldName?: string) => ({
     createdBy: true,
     parentNoteId: true,
     ...(isDefined(typeFieldName) ? { [typeFieldName]: true } : {}),
+    ...(isDefined(bucketFieldName) ? { [bucketFieldName]: true } : {}),
   },
 });

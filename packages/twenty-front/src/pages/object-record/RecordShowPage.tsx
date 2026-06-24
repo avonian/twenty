@@ -5,6 +5,9 @@ import { FieldCommentDeepLinkEffect } from '@/field-comments/components/FieldCom
 import { FieldCommentsPanel } from '@/field-comments/components/FieldCommentsPanel';
 import { NoteFieldCommentJumpBanner } from '@/field-comments/components/NoteFieldCommentJumpBanner';
 import { IS_FIELD_COMMENTS_ENABLED } from '@/field-comments/constants/IsFieldCommentsEnabled';
+import { FieldObjectiveDeepLinkEffect } from '@/field-objectives/components/FieldObjectiveDeepLinkEffect';
+import { FieldObjectivesPanel } from '@/field-objectives/components/FieldObjectivesPanel';
+import { IS_FIELD_OBJECTIVES_ENABLED } from '@/field-objectives/constants/IsFieldObjectivesEnabled';
 import { RecordShowCommandMenu } from '@/command-menu-item/components/RecordShowCommandMenu';
 import { CommandMenuComponentInstanceContext } from '@/command-menu/states/contexts/CommandMenuComponentInstanceContext';
 import { TimelineActivityContext } from '@/activities/timeline-activities/contexts/TimelineActivityContext';
@@ -91,6 +94,15 @@ export const RecordShowPage = () => {
             <>
               <FieldCommentDeepLinkEffect />
               <FieldCommentsPanel
+                recordId={objectRecordId}
+                objectNameSingular={objectNameSingular}
+              />
+            </>
+          )}
+          {IS_FIELD_OBJECTIVES_ENABLED && (
+            <>
+              <FieldObjectiveDeepLinkEffect />
+              <FieldObjectivesPanel
                 recordId={objectRecordId}
                 objectNameSingular={objectNameSingular}
               />

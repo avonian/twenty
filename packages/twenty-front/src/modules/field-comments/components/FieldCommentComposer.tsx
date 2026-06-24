@@ -87,6 +87,10 @@ const StyledSendButton = styled.button`
 type FieldCommentComposerProps = {
   onSubmit: (text: string, typeValue: string | null) => void;
   autoFocus?: boolean;
+  placeholder?: string;
+  // Objectives reuse this composer but don't categorize, so the Type picker is
+  // hidden for them.
+  showTypeField?: boolean;
 };
 
 // Root-comment composer shared by the inline popover and the side panel. When
@@ -96,6 +100,8 @@ type FieldCommentComposerProps = {
 export const FieldCommentComposer = ({
   onSubmit,
   autoFocus,
+  placeholder,
+  showTypeField = true,
 }: FieldCommentComposerProps) => {
   const { t } = useLingui();
   const { fieldCommentTypeField } = useFieldCommentTypeField();
@@ -133,7 +139,7 @@ export const FieldCommentComposer = ({
 
   return (
     <StyledComposer>
-      {fieldCommentTypeField && (
+      {showTypeField && fieldCommentTypeField && (
         <StyledTypeOptions>
           {fieldCommentTypeField.options?.map((option) => {
             const isSelected = selectedTypeValue === option.value;
@@ -160,7 +166,7 @@ export const FieldCommentComposer = ({
           autoFocus={autoFocus}
           rows={1}
           value={newCommentText}
-          placeholder={t`Add a comment...`}
+          placeholder={placeholder ?? t`Add a comment...`}
           onChange={(event) => setNewCommentText(event.target.value)}
           onKeyDown={(event) => {
             // Enter sends; Shift+Enter inserts a newline.

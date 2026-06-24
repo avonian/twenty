@@ -6,6 +6,11 @@ import { IconArrowRight, IconTrash } from 'twenty-ui-deprecated/display';
 import { themeCssVariables } from 'twenty-ui-deprecated/theme-constants';
 
 import { FIELD_COMMENT_DEEP_LINK_PARAM } from '@/field-comments/constants/FieldCommentDeepLinkParam';
+import {
+  NOTE_BUCKET,
+  type NoteBucketValue,
+} from '@/field-comments/constants/NoteBucket';
+import { FIELD_OBJECTIVE_DEEP_LINK_PARAM } from '@/field-objectives/constants/FieldObjectiveDeepLinkParam';
 import { LoadRelatedNotesButton } from '@/load-related-notes/components/LoadRelatedNotesButton';
 import {
   type EventoRelatedNoteSource,
@@ -107,21 +112,35 @@ const StyledEmpty = styled.div`
 
 type EventoNotesTableProps = {
   eventoId: string;
+  bucket?: NoteBucketValue;
 };
 
 // Flamagas: replaces the native Notes tab for an Evento with a read-only table
 // of the notes pulled in from its related País / Distribuidor / Performance.
 // Each row jumps to the note's source thread; reps prune the ones they don't
-// want. Notes are shared (links), never copied.
-export const EventoNotesTable = ({ eventoId }: EventoNotesTableProps) => {
+// want. Notes are shared (links), never copied. The same table serves the
+// Objetivos tab via the bucket prop.
+export const EventoNotesTable = ({
+  eventoId,
+  bucket = NOTE_BUCKET.NOTE,
+}: EventoNotesTableProps) => {
   const { t } = useLingui();
   const navigateApp = useNavigateApp();
-  const { rows, loading, removeFromEvento } = useEventoRelatedNotes(eventoId);
+  const { rows, loading, removeFromEvento } = useEventoRelatedNotes(
+    eventoId,
+    bucket,
+  );
+
+  const isObjectives = bucket === NOTE_BUCKET.OBJECTIVE;
 
   const openSource = (source: EventoRelatedNoteSource | null) => {
     if (!isDefined(source)) {
       return;
     }
+
+    const deepLinkParam = isObjectives
+      ? FIELD_OBJECTIVE_DEEP_LINK_PARAM
+      : FIELD_COMMENT_DEEP_LINK_PARAM;
 
     navigateApp(
       AppPath.RecordShowPage,
@@ -130,7 +149,7 @@ export const EventoNotesTable = ({ eventoId }: EventoNotesTableProps) => {
         objectRecordId: source.recordId,
       },
       isDefined(source.fieldMetadataId)
-        ? { [FIELD_COMMENT_DEEP_LINK_PARAM]: source.fieldMetadataId }
+        ? { [deepLinkParam]: source.fieldMetadataId }
         : undefined,
     );
   };
@@ -138,21 +157,29 @@ export const EventoNotesTable = ({ eventoId }: EventoNotesTableProps) => {
   return (
     <StyledContainer>
       <StyledHeader>
-        <StyledTitle>{t`Notes`}</StyledTitle>
-        <LoadRelatedNotesButton eventoId={eventoId} size="small" />
+        <StyledTitle>{isObjectives ? t`Objectives` : t`Notes`}</StyledTitle>
+        <LoadRelatedNotesButton
+          eventoId={eventoId}
+          bucket={bucket}
+          size="small"
+        />
       </StyledHeader>
 
       {!loading && rows.length === 0 ? (
         <StyledEmpty>
-          {t`No notes yet. Use "Load notes" to pull them from the related País, Distribuidor or Performance.`}
+          {isObjectives
+            ? t`No objectives yet. Use "Load objectives" to pull them from the related País, Distribuidor or Performance.`
+            : t`No notes yet. Use "Load notes" to pull them from the related País, Distribuidor or Performance.`}
         </StyledEmpty>
       ) : (
         <StyledTable>
           <thead>
             <tr>
               <StyledTh>{t`Name`}</StyledTh>
-              <StyledTh>{t`Type`}</StyledTh>
-              <StyledTh>{t`Main comment`}</StyledTh>
+              {!isObjectives && <StyledTh>{t`Type`}</StyledTh>}
+              <StyledTh>
+                {isObjectives ? t`Objective` : t`Main comment`}
+              </StyledTh>
               <StyledTh>{t`Created by`}</StyledTh>
               <StyledTh />
             </tr>
@@ -164,11 +191,13 @@ export const EventoNotesTable = ({ eventoId }: EventoNotesTableProps) => {
                 onClick={() => openSource(row.source)}
               >
                 <StyledTd>{row.nombre || t`Untitled`}</StyledTd>
-                <StyledTd>
-                  {row.tipoLabel.length > 0 && (
-                    <StyledTipo>{row.tipoLabel}</StyledTipo>
-                  )}
-                </StyledTd>
+                {!isObjectives && (
+                  <StyledTd>
+                    {row.tipoLabel.length > 0 && (
+                      <StyledTipo>{row.tipoLabel}</StyledTipo>
+                    )}
+                  </StyledTd>
+                )}
                 <StyledTd>{row.comentario}</StyledTd>
                 <StyledTd>{row.createdBy || t`Unknown`}</StyledTd>
                 <StyledActionCell>

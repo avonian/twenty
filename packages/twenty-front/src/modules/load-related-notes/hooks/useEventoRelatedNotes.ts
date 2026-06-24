@@ -3,7 +3,13 @@ import { CoreObjectNameSingular } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
 
 import { getActivityTargetObjectFieldIdName } from '@/activities/utils/getActivityTargetObjectFieldIdName';
+import {
+  NOTE_BUCKET,
+  type NoteBucketValue,
+} from '@/field-comments/constants/NoteBucket';
 import { useFieldCommentTypeField } from '@/field-comments/hooks/useFieldCommentTypeField';
+import { useNoteBucketField } from '@/field-comments/hooks/useNoteBucketField';
+import { noteTargetMatchesBucket } from '@/field-comments/utils/noteTargetMatchesBucket';
 import { LOAD_RELATED_NOTES_OBJECT_NAME_SINGULAR } from '@/load-related-notes/constants/LoadRelatedNotesObjectNameSingular';
 import { useApolloCoreClient } from '@/object-metadata/hooks/useApolloCoreClient';
 import { useDestroyOneRecord } from '@/object-record/hooks/useDestroyOneRecord';
@@ -62,16 +68,21 @@ type NoteTargetRow = {
 // Powers the Evento's custom Notes table: every note linked to the evento (via
 // noteTarget, record-level or field-anchored alike) plus, for each, where it
 // originally came from so a row click can jump to that source thread.
-export const useEventoRelatedNotes = (eventoId: string) => {
+export const useEventoRelatedNotes = (
+  eventoId: string,
+  bucket: NoteBucketValue = NOTE_BUCKET.NOTE,
+) => {
   const apolloCoreClient = useApolloCoreClient();
   const { fieldCommentTypeField } = useFieldCommentTypeField();
   const typeFieldName = fieldCommentTypeField?.name;
+  const { noteBucketField } = useNoteBucketField();
+  const bucketFieldName = noteBucketField?.name;
 
   const eventoTargetColumn = getActivityTargetObjectFieldIdName({
     nameSingular: LOAD_RELATED_NOTES_OBJECT_NAME_SINGULAR,
   });
 
-  const { records: eventoLinks, loading: loadingLinks } =
+  const { records: eventoLinksAllBuckets, loading: loadingLinks } =
     useFindManyRecords<EventoLinkRow>({
       objectNameSingular: CoreObjectNameSingular.NoteTarget,
       filter: { [eventoTargetColumn]: { eq: eventoId } },
@@ -84,9 +95,16 @@ export const useEventoRelatedNotes = (eventoId: string) => {
           bodyV2: { markdown: true },
           createdBy: { name: true },
           ...(isDefined(typeFieldName) ? { [typeFieldName]: true } : {}),
+          ...(isDefined(bucketFieldName) ? { [bucketFieldName]: true } : {}),
         },
       },
     });
+
+  // Keep only the requested bucket — comments and objectives share the evento's
+  // noteTargets but surface in separate tabs.
+  const eventoLinks = eventoLinksAllBuckets.filter((link) =>
+    noteTargetMatchesBucket(link, bucketFieldName, bucket),
+  );
 
   const noteIds = eventoLinks.map((link) => link.noteId).filter(isDefined);
 

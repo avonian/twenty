@@ -1,34 +1,35 @@
 import { styled } from '@linaria/react';
 import { useContext, useEffect } from 'react';
-import { IconMessage } from 'twenty-ui-deprecated/display';
+import { IconTarget } from 'twenty-ui-deprecated/display';
 import { themeCssVariables } from 'twenty-ui-deprecated/theme-constants';
 import { isDefined } from 'twenty-shared/utils';
 
-import { FieldCommentPopover } from '@/field-comments/components/FieldCommentPopover';
+import { NOTE_BUCKET } from '@/field-comments/constants/NoteBucket';
 import { useIsFieldCommentableObject } from '@/field-comments/hooks/useIsFieldCommentableObject';
 import { useRecordFieldCommentThreads } from '@/field-comments/hooks/useRecordFieldCommentThreads';
 import { fieldCommentDefaultTargetState } from '@/field-comments/states/fieldCommentDefaultTargetState';
+import { fieldCommentsPanelOpenState } from '@/field-comments/states/fieldCommentsPanelState';
+import { FieldObjectivePopover } from '@/field-objectives/components/FieldObjectivePopover';
 import {
-  fieldCommentsHoveredFromFormFieldMetadataIdState,
-  fieldCommentsHoveredFromPanelFieldMetadataIdState,
-  fieldCommentsPanelFocusFieldMetadataIdState,
-  fieldCommentsPanelOpenState,
-} from '@/field-comments/states/fieldCommentsPanelState';
-import { fieldObjectivesPanelOpenState } from '@/field-objectives/states/fieldObjectivesPanelState';
-import { FieldContext } from '@/object-record/record-field/ui/contexts/FieldContext';
+  fieldObjectivesHoveredFromFormFieldMetadataIdState,
+  fieldObjectivesHoveredFromPanelFieldMetadataIdState,
+  fieldObjectivesPanelFocusFieldMetadataIdState,
+  fieldObjectivesPanelOpenState,
+} from '@/field-objectives/states/fieldObjectivesPanelState';
 import { useObjectMetadataItems } from '@/object-metadata/hooks/useObjectMetadataItems';
+import { FieldContext } from '@/object-record/record-field/ui/contexts/FieldContext';
 import { Dropdown } from '@/ui/layout/dropdown/components/Dropdown';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { useSetAtomState } from '@/ui/utilities/state/jotai/hooks/useSetAtomState';
 
-const StyledButton = styled.button<{ hasComments: boolean }>`
+const StyledButton = styled.button<{ hasObjectives: boolean }>`
   align-items: center;
   background: transparent;
   border: none;
   border-radius: ${themeCssVariables.border.radius.sm};
-  color: ${({ hasComments }) =>
-    hasComments
-      ? themeCssVariables.color.blue
+  color: ${({ hasObjectives }) =>
+    hasObjectives
+      ? themeCssVariables.color.red
       : themeCssVariables.font.color.tertiary};
   cursor: pointer;
   display: flex;
@@ -46,42 +47,45 @@ const StyledCount = styled.span`
   font-weight: ${themeCssVariables.font.weight.medium};
 `;
 
-type FieldCommentButtonProps = {
+type FieldObjectiveButtonProps = {
   isHovered: boolean;
 };
 
-export const FieldCommentButton = ({ isHovered }: FieldCommentButtonProps) => {
+export const FieldObjectiveButton = ({
+  isHovered,
+}: FieldObjectiveButtonProps) => {
   const { recordId, fieldDefinition, anchorId } = useContext(FieldContext);
   const { objectMetadataItems } = useObjectMetadataItems();
 
+  // Shared with comments — one "open in side panel" preference for both.
   const fieldCommentDefaultTarget = useAtomStateValue(
     fieldCommentDefaultTargetState,
   );
-  const fieldCommentsPanelOpen = useAtomStateValue(fieldCommentsPanelOpenState);
-  const setFieldCommentsPanelOpen = useSetAtomState(
-    fieldCommentsPanelOpenState,
+  const fieldObjectivesPanelOpen = useAtomStateValue(
+    fieldObjectivesPanelOpenState,
   );
-  const setFieldCommentsPanelFocusFieldMetadataId = useSetAtomState(
-    fieldCommentsPanelFocusFieldMetadataIdState,
-  );
-  const fieldCommentsHoveredFromPanelFieldMetadataId = useAtomStateValue(
-    fieldCommentsHoveredFromPanelFieldMetadataIdState,
-  );
-  const setFieldCommentsHoveredFromFormFieldMetadataId = useSetAtomState(
-    fieldCommentsHoveredFromFormFieldMetadataIdState,
-  );
-  // Panels are mutually exclusive — opening comments closes objectives.
   const setFieldObjectivesPanelOpen = useSetAtomState(
     fieldObjectivesPanelOpenState,
+  );
+  const setFieldObjectivesPanelFocusFieldMetadataId = useSetAtomState(
+    fieldObjectivesPanelFocusFieldMetadataIdState,
+  );
+  const fieldObjectivesHoveredFromPanelFieldMetadataId = useAtomStateValue(
+    fieldObjectivesHoveredFromPanelFieldMetadataIdState,
+  );
+  const setFieldObjectivesHoveredFromFormFieldMetadataId = useSetAtomState(
+    fieldObjectivesHoveredFromFormFieldMetadataIdState,
+  );
+  // Panels are mutually exclusive — opening objectives closes comments.
+  const setFieldCommentsPanelOpen = useSetAtomState(
+    fieldCommentsPanelOpenState,
   );
 
   const fieldMetadataId = fieldDefinition?.fieldMetadataId;
 
-  // Highlight + scroll this field only when its card is hovered in the panel —
-  // not when its own icon is hovered (the cursor is already there).
   const isHighlightedFromPanel =
     isDefined(fieldMetadataId) &&
-    fieldCommentsHoveredFromPanelFieldMetadataId === fieldMetadataId;
+    fieldObjectivesHoveredFromPanelFieldMetadataId === fieldMetadataId;
 
   useEffect(() => {
     if (!isHighlightedFromPanel || !isDefined(anchorId)) {
@@ -107,34 +111,27 @@ export const FieldCommentButton = ({ isHovered }: FieldCommentButtonProps) => {
     };
   }, [isHighlightedFromPanel, anchorId]);
 
-  // Hovering the field's comment icon highlights the matching card in the panel.
   const handleMouseEnter = () => {
     if (isDefined(fieldMetadataId)) {
-      setFieldCommentsHoveredFromFormFieldMetadataId(fieldMetadataId);
+      setFieldObjectivesHoveredFromFormFieldMetadataId(fieldMetadataId);
     }
   };
   const handleMouseLeave = () =>
-    setFieldCommentsHoveredFromFormFieldMetadataId(null);
+    setFieldObjectivesHoveredFromFormFieldMetadataId(null);
 
-  // Resolve the owning object's nameSingular from the field metadata.
   const objectNameSingular =
     fieldDefinition?.metadata?.objectMetadataNameSingular ??
     objectMetadataItems.find((objectMetadataItem) =>
       objectMetadataItem.fields.some((field) => field.id === fieldMetadataId),
     )?.nameSingular;
 
-  // Only objects that noteTarget can anchor to are commentable (e.g. note/task
-  // themselves are not) — otherwise the threads query filters on a join column
-  // that doesn't exist and the backend rejects it.
   const isFieldCommentableObject =
     useIsFieldCommentableObject(objectNameSingular);
 
-  // Count is derived from a single record-wide query (deduped by Apollo across
-  // every field's button), then grouped by field — this avoids per-field query
-  // cache collisions where unrelated fields briefly showed a badge.
   const { fieldGroups } = useRecordFieldCommentThreads({
     recordId,
     objectNameSingular: objectNameSingular ?? '',
+    bucket: NOTE_BUCKET.OBJECTIVE,
     skip: !objectNameSingular || !fieldMetadataId || !isFieldCommentableObject,
   });
 
@@ -145,49 +142,40 @@ export const FieldCommentButton = ({ isHovered }: FieldCommentButtonProps) => {
   const threadCount =
     fieldGroups.find((group) => group.fieldMetadataId === fieldMetadataId)
       ?.threads.length ?? 0;
-  const hasComments = threadCount > 0;
+  const hasObjectives = threadCount > 0;
 
-  // Persist the affordance when the field has comments; otherwise only on hover.
-  if (!hasComments && !isHovered) {
+  if (!hasObjectives && !isHovered) {
     return null;
   }
 
-  // Adding the first comment to a field always happens in situ via the inline
-  // popover — even when the side panel is the default target — so you can
-  // comment in the context of the field rather than over in the panel.
-  const isAddingNewComment = !hasComments;
+  const isAddingNewObjective = !hasObjectives;
 
-  if (fieldCommentDefaultTarget === 'panel' && !isAddingNewComment) {
+  if (fieldCommentDefaultTarget === 'panel' && !isAddingNewObjective) {
     const handleOpenPanel = () => {
-      setFieldObjectivesPanelOpen(false);
-      setFieldCommentsPanelFocusFieldMetadataId(fieldMetadataId);
-      setFieldCommentsPanelOpen(true);
+      setFieldCommentsPanelOpen(false);
+      setFieldObjectivesPanelFocusFieldMetadataId(fieldMetadataId);
+      setFieldObjectivesPanelOpen(true);
     };
 
     return (
       <StyledButton
         type="button"
-        hasComments={hasComments}
+        hasObjectives={hasObjectives}
         onClick={handleOpenPanel}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        <IconMessage size={14} />
-        {hasComments && <StyledCount>{threadCount}</StyledCount>}
+        <IconTarget size={14} />
+        {hasObjectives && <StyledCount>{threadCount}</StyledCount>}
       </StyledButton>
     );
   }
 
-  // Key the dropdown by the instance-unique anchorId so a field rendered in
-  // more than one place (e.g. multiple cells) doesn't share open state and
-  // open two overlaid popovers.
-  const dropdownId = `field-comment-${anchorId ?? `${recordId}-${fieldMetadataId}`}`;
+  const dropdownId = `field-objective-${anchorId ?? `${recordId}-${fieldMetadataId}`}`;
 
-  // When the inline popover opens to add a new comment, unpin the side panel so
-  // the thread shows in situ instead of behind the (still pinned) panel.
   const handlePopoverOpen = () => {
-    if (isAddingNewComment && fieldCommentsPanelOpen) {
-      setFieldCommentsPanelOpen(false);
+    if (isAddingNewObjective && fieldObjectivesPanelOpen) {
+      setFieldObjectivesPanelOpen(false);
     }
   };
 
@@ -199,16 +187,16 @@ export const FieldCommentButton = ({ isHovered }: FieldCommentButtonProps) => {
       clickableComponent={
         <StyledButton
           type="button"
-          hasComments={hasComments}
+          hasObjectives={hasObjectives}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-          <IconMessage size={14} />
-          {hasComments && <StyledCount>{threadCount}</StyledCount>}
+          <IconTarget size={14} />
+          {hasObjectives && <StyledCount>{threadCount}</StyledCount>}
         </StyledButton>
       }
       dropdownComponents={
-        <FieldCommentPopover
+        <FieldObjectivePopover
           recordId={recordId}
           objectNameSingular={objectNameSingular}
           fieldMetadataId={fieldMetadataId}

@@ -2,6 +2,8 @@ import { styled } from '@linaria/react';
 
 import { FieldCommentButton } from '@/field-comments/components/FieldCommentButton';
 import { IS_FIELD_COMMENTS_ENABLED } from '@/field-comments/constants/IsFieldCommentsEnabled';
+import { FieldObjectiveButton } from '@/field-objectives/components/FieldObjectiveButton';
+import { IS_FIELD_OBJECTIVES_ENABLED } from '@/field-objectives/constants/IsFieldObjectivesEnabled';
 import { FieldContext } from '@/object-record/record-field/ui/contexts/FieldContext';
 import { useIsFieldEmpty } from '@/object-record/record-field/ui/hooks/useIsFieldEmpty';
 import { useIsFieldInputOnly } from '@/object-record/record-field/ui/hooks/useIsFieldInputOnly';
@@ -83,6 +85,11 @@ export const RecordInlineCellDisplayMode = ({
     !!recordId &&
     !!fieldDefinition?.fieldMetadataId;
 
+  const showFieldObjectiveButton =
+    IS_FIELD_OBJECTIVES_ENABLED &&
+    !!recordId &&
+    !!fieldDefinition?.fieldMetadataId;
+
   const isFieldEmpty = useIsFieldEmpty();
   const showEditButton =
     buttonIcon &&
@@ -118,6 +125,9 @@ export const RecordInlineCellDisplayMode = ({
         <RecordInlineCellButton Icon={buttonIcon} onClick={onClick} />
       )}
       {showFieldCommentButton && <FieldCommentButton isHovered={isHovered} />}
+      {showFieldObjectiveButton && (
+        <FieldObjectiveButton isHovered={isHovered} />
+      )}
     </>
   );
 };

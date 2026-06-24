@@ -40,4 +40,5 @@ export type EventoBriefingData = {
   pais: EventoBriefingPais | null;
   performances: { id: string; name: string }[];
   notes: EventoBriefingNote[];
+  objectives: EventoBriefingNote[];
 };

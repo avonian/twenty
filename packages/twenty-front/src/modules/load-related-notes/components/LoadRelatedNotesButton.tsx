@@ -11,6 +11,10 @@ import {
 import { Button } from 'twenty-ui-deprecated/input';
 import { MenuItem } from 'twenty-ui-deprecated/navigation';
 
+import {
+  NOTE_BUCKET,
+  type NoteBucketValue,
+} from '@/field-comments/constants/NoteBucket';
 import { useLoadRelatedNotes } from '@/load-related-notes/hooks/useLoadRelatedNotes';
 import { recordStoreFamilySelector } from '@/object-record/record-store/states/selectors/recordStoreFamilySelector';
 import { type ObjectRecord } from '@/object-record/types/ObjectRecord';
@@ -28,17 +32,20 @@ type RelationRecord = { id: string; name?: string } | null;
 
 type LoadRelatedNotesButtonProps = {
   eventoId: string;
+  bucket?: NoteBucketValue;
   size?: 'small' | 'medium';
 };
 
 const LoadRelatedNotesDropdownContent = ({
   eventoId,
+  bucket,
   dropdownId,
   pais,
   distribuidor,
   performances,
 }: {
   eventoId: string;
+  bucket: NoteBucketValue;
   dropdownId: string;
   pais: RelationRecord;
   distribuidor: RelationRecord;
@@ -46,9 +53,11 @@ const LoadRelatedNotesDropdownContent = ({
 }) => {
   const { t } = useLingui();
   const [view, setView] = useState<'main' | 'performances'>('main');
-  const { loadNotesFromSource } = useLoadRelatedNotes(eventoId);
+  const { loadNotesFromSource } = useLoadRelatedNotes(eventoId, bucket);
   const { enqueueSuccessSnackBar, enqueueErrorSnackBar } = useSnackBar();
   const { closeDropdown } = useCloseDropdown();
+
+  const isObjectives = bucket === NOTE_BUCKET.OBJECTIVE;
 
   const run = async (objectNameSingular: string, recordId: string) => {
     closeDropdown(dropdownId);
@@ -57,14 +66,21 @@ const LoadRelatedNotesDropdownContent = ({
         objectNameSingular,
         recordId,
       );
+      const loadedMessage = isObjectives
+        ? t`Loaded ${linked} objective(s)`
+        : t`Loaded ${linked} note(s)`;
       enqueueSuccessSnackBar({
         message:
           skipped > 0
-            ? t`Loaded ${linked} note(s) (${skipped} already linked)`
-            : t`Loaded ${linked} note(s)`,
+            ? t`${loadedMessage} (${skipped} already linked)`
+            : loadedMessage,
       });
     } catch {
-      enqueueErrorSnackBar({ message: t`Could not load notes` });
+      enqueueErrorSnackBar({
+        message: isObjectives
+          ? t`Could not load objectives`
+          : t`Could not load notes`,
+      });
     }
   };
 
@@ -132,10 +148,11 @@ const LoadRelatedNotesDropdownContent = ({
 // País / Distribuidor / a chosen Performance onto the evento (reps then prune).
 export const LoadRelatedNotesButton = ({
   eventoId,
+  bucket = NOTE_BUCKET.NOTE,
   size = 'medium',
 }: LoadRelatedNotesButtonProps) => {
   const { t } = useLingui();
-  const dropdownId = `load-related-notes-${eventoId}`;
+  const dropdownId = `load-related-notes-${bucket}-${eventoId}`;
 
   const pais = useAtomFamilySelectorValue(recordStoreFamilySelector, {
     recordId: eventoId,
@@ -162,12 +179,17 @@ export const LoadRelatedNotesButton = ({
           Icon={IconDownload}
           size={size}
           variant="secondary"
-          title={t`Load notes`}
+          title={
+            bucket === NOTE_BUCKET.OBJECTIVE
+              ? t`Load objectives`
+              : t`Load notes`
+          }
         />
       }
       dropdownComponents={
         <LoadRelatedNotesDropdownContent
           eventoId={eventoId}
+          bucket={bucket}
           dropdownId={dropdownId}
           pais={pais}
           distribuidor={distribuidor}
