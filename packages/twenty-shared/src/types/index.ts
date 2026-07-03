@@ -201,6 +201,7 @@ export type {
   WorkflowConfiguration,
   WorkflowVersionConfiguration,
   WorkflowRunConfiguration,
+  VersionsConfiguration,
   PageLayoutWidgetConfiguration,
 } from './page-layout/page-layout-widget-configuration.type';
 export type {

@@ -18,6 +18,7 @@ import { isDefined } from 'twenty-shared/utils';
 import { Button } from 'twenty-ui-deprecated/input';
 import { themeCssVariables } from 'twenty-ui-deprecated/theme-constants';
 import { PageLayoutType } from '~/generated-metadata/graphql';
+import { VersionedSaveBar } from '@/versioning/components/VersionedSaveBar';
 
 const StyledShowPageBannerContainer = styled.div`
   z-index: 1;
@@ -145,6 +146,8 @@ export const PageLayoutRecordPageRenderer = ({
             ]}
           />
         )}
+
+        <VersionedSaveBar recordId={targetRecordIdentifier.id} />
       </StyledShowPageRightContainer>
     </>
   );

@@ -16,6 +16,7 @@ import { PieChartConfigurationDTO } from 'src/engine/metadata-modules/page-layou
 import { StandaloneRichTextConfigurationDTO } from 'src/engine/metadata-modules/page-layout-widget/dtos/standalone-rich-text-configuration.dto';
 import { TasksConfigurationDTO } from 'src/engine/metadata-modules/page-layout-widget/dtos/tasks-configuration.dto';
 import { TimelineConfigurationDTO } from 'src/engine/metadata-modules/page-layout-widget/dtos/timeline-configuration.dto';
+import { VersionsConfigurationDTO } from 'src/engine/metadata-modules/page-layout-widget/dtos/versions-configuration.dto';
 import { ViewConfigurationDTO } from 'src/engine/metadata-modules/page-layout-widget/dtos/view-configuration.dto';
 import { WorkflowConfigurationDTO } from 'src/engine/metadata-modules/page-layout-widget/dtos/workflow-configuration.dto';
 import { WorkflowRunConfigurationDTO } from 'src/engine/metadata-modules/page-layout-widget/dtos/workflow-run-configuration.dto';
@@ -47,6 +48,7 @@ export const ALL_WIDGET_CONFIGURATION_TYPE_VALIDATOR_BY_WIDGET_CONFIGURATION_TYP
     WORKFLOW: WorkflowConfigurationDTO,
     WORKFLOW_RUN: WorkflowRunConfigurationDTO,
     WORKFLOW_VERSION: WorkflowVersionConfigurationDTO,
+    VERSIONS: VersionsConfigurationDTO,
   } as const satisfies {
     [P in WidgetConfigurationType]: new () => PageLayoutWidgetConfigurationBase;
   };

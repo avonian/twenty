@@ -6017,7 +6017,7 @@ export type Webhook = {
   updatedAt: Scalars['DateTime']['output'];
 };
 
-export type WidgetConfiguration = AggregateChartConfiguration | BarChartConfiguration | CalendarConfiguration | EmailThreadConfiguration | EmailsConfiguration | FieldConfiguration | FieldRichTextConfiguration | FieldsConfiguration | FilesConfiguration | FrontComponentConfiguration | IframeConfiguration | LineChartConfiguration | NotesConfiguration | PieChartConfiguration | RecordTableConfiguration | StandaloneRichTextConfiguration | TasksConfiguration | TimelineConfiguration | ViewConfiguration | WorkflowConfiguration | WorkflowRunConfiguration | WorkflowVersionConfiguration;
+export type WidgetConfiguration = AggregateChartConfiguration | BarChartConfiguration | CalendarConfiguration | EmailThreadConfiguration | EmailsConfiguration | FieldConfiguration | FieldRichTextConfiguration | FieldsConfiguration | FilesConfiguration | FrontComponentConfiguration | IframeConfiguration | LineChartConfiguration | NotesConfiguration | PieChartConfiguration | RecordTableConfiguration | StandaloneRichTextConfiguration | TasksConfiguration | TimelineConfiguration | VersionsConfiguration | ViewConfiguration | WorkflowConfiguration | WorkflowRunConfiguration | WorkflowVersionConfiguration;
 
 export enum WidgetConfigurationType {
   AGGREGATE_CHART = 'AGGREGATE_CHART',
@@ -6038,6 +6038,7 @@ export enum WidgetConfigurationType {
   STANDALONE_RICH_TEXT = 'STANDALONE_RICH_TEXT',
   TASKS = 'TASKS',
   TIMELINE = 'TIMELINE',
+  VERSIONS = 'VERSIONS',
   VIEW = 'VIEW',
   WORKFLOW = 'WORKFLOW',
   WORKFLOW_RUN = 'WORKFLOW_RUN',
@@ -6060,11 +6061,17 @@ export enum WidgetType {
   STANDALONE_RICH_TEXT = 'STANDALONE_RICH_TEXT',
   TASKS = 'TASKS',
   TIMELINE = 'TIMELINE',
+  VERSIONS = 'VERSIONS',
   VIEW = 'VIEW',
   WORKFLOW = 'WORKFLOW',
   WORKFLOW_RUN = 'WORKFLOW_RUN',
   WORKFLOW_VERSION = 'WORKFLOW_VERSION'
 }
+
+export type VersionsConfiguration = {
+  __typename?: 'VersionsConfiguration';
+  configurationType: WidgetConfigurationType;
+};
 
 export type WorkflowConfiguration = {
   __typename?: 'WorkflowConfiguration';

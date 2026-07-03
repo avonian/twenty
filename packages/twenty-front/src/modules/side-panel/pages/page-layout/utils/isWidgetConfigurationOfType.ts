@@ -17,6 +17,7 @@ import {
   type StandaloneRichTextConfiguration,
   type TasksConfiguration,
   type TimelineConfiguration,
+  type VersionsConfiguration,
   type ViewConfiguration,
   type WidgetConfiguration,
   type WidgetConfigurationType,
@@ -115,6 +116,9 @@ type WidgetConfigurationTypenameMap = {
     'configurationType'
   > & {
     configurationType: WidgetConfigurationType.WORKFLOW_VERSION;
+  };
+  VersionsConfiguration: Omit<VersionsConfiguration, 'configurationType'> & {
+    configurationType: WidgetConfigurationType.VERSIONS;
   };
 };
 

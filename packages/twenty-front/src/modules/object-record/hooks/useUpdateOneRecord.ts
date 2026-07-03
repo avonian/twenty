@@ -24,6 +24,9 @@ import { isNull } from '@sniptt/guards';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { isDefined } from 'twenty-shared/utils';
 import { buildRecordFromKeysWithSameValue } from '~/utils/array/buildRecordFromKeysWithSameValue';
+import { useStore } from 'jotai';
+import { isVersionedObjectNameSingular } from '@/versioning/utils/isVersionedObjectNameSingular';
+import { versionedRecordDraftState } from '@/versioning/states/versionedRecordDraftState';
 
 type UpdateOneRecordArgs<UpdatedObjectRecord> = {
   objectNameSingular: string;
@@ -34,6 +37,7 @@ type UpdateOneRecordArgs<UpdatedObjectRecord> = {
 };
 
 export const useUpdateOneRecord = () => {
+  const store = useStore();
   const apolloCoreClient = useApolloCoreClient();
   const { upsertRecordsInStore } = useUpsertRecordsInStore();
 
@@ -60,6 +64,55 @@ export const useUpdateOneRecord = () => {
       throw new Error(
         `Object metadata item not found for ${objectNameSingular}`,
       );
+    }
+
+    if (isVersionedObjectNameSingular(objectNameSingular)) {
+      const existingDraft = store.get(
+        versionedRecordDraftState.atomFamily(idToUpdate),
+      );
+
+      const mergedChanges = {
+        ...(existingDraft?.changes ?? {}),
+        ...updateOneRecordInput,
+      };
+
+      store.set(versionedRecordDraftState.atomFamily(idToUpdate), {
+        recordId: idToUpdate,
+        objectNameSingular,
+        changes: mergedChanges,
+      });
+
+      const computedRecordGqlFields =
+        recordGqlFields ??
+        generateDepthRecordGqlFieldsFromObject({
+          objectMetadataItem,
+          objectMetadataItems,
+          depth: 1,
+        });
+
+      const cachedRecord = getRecordFromCache({
+        cache: apolloCoreClient.cache,
+        objectMetadataItem,
+        objectMetadataItems,
+        recordId: idToUpdate,
+        recordGqlFields: computedRecordGqlFields,
+        objectPermissionsByObjectMetadataId,
+      });
+
+      if (cachedRecord) {
+        const optimisticRecord = {
+          ...cachedRecord,
+          ...updateOneRecordInput,
+          id: idToUpdate,
+          __typename: getObjectTypename(objectMetadataItem.nameSingular),
+        };
+
+        upsertRecordsInStore({ partialRecords: [optimisticRecord] });
+
+        return optimisticRecord as unknown as UpdatedObjectRecord;
+      }
+
+      return { ...updateOneRecordInput, id: idToUpdate } as unknown as UpdatedObjectRecord;
     }
 
     const optimisticRecordInput =

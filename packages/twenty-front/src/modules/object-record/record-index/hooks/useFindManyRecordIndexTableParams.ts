@@ -11,6 +11,7 @@ import { useRecordGroupFilter } from '@/object-record/record-group/hooks/useReco
 import { currentRecordSortsComponentState } from '@/object-record/record-sort/states/currentRecordSortsComponentState';
 import { useAtomComponentStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomComponentStateValue';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
+import { getVersionedObjectIndexFilter } from '@/versioning/utils/getVersionedObjectIndexFilter';
 import {
   combineFilters,
   computeRecordGqlOperationFilter,
@@ -77,10 +78,14 @@ export const useFindManyRecordIndexTableParams = (
     objectMetadataItems,
   );
 
+  const versionedObjectIndexFilter =
+    getVersionedObjectIndexFilter(objectNameSingular);
+
   const combinedFilter = combineFilters([
     currentFilters,
     recordGroupFilter,
     anyFieldFilter,
+    ...(versionedObjectIndexFilter ? [versionedObjectIndexFilter] : []),
   ]);
 
   return {

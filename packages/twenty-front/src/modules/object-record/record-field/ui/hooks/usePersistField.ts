@@ -30,7 +30,9 @@ import { recordStoreFamilySelector } from '@/object-record/record-store/states/s
 import { useObjectMetadataItemById } from '@/object-metadata/hooks/useObjectMetadataItemById';
 import { useObjectMetadataItems } from '@/object-metadata/hooks/useObjectMetadataItems';
 import { getRecordFromRecordNode } from '@/object-record/cache/utils/getRecordFromRecordNode';
+import { getObjectTypename } from '@/object-record/cache/utils/getObjectTypename';
 import { useUpdateOneRecord } from '@/object-record/hooks/useUpdateOneRecord';
+import { searchRecordStoreFamilyState } from '@/object-record/record-picker/multiple-record-picker/states/searchRecordStoreComponentFamilyState';
 import { buildMorphRelationUpdateInput } from '@/object-record/record-field/ui/meta-types/input/utils/buildMorphRelationUpdateInput';
 import { isFieldArray } from '@/object-record/record-field/ui/types/guards/isFieldArray';
 import { isFieldArrayValue } from '@/object-record/record-field/ui/types/guards/isFieldArrayValue';
@@ -204,6 +206,50 @@ export const usePersistField = ({
             },
           });
 
+          if (valueToPersist) {
+            const searchRecord = store.get(
+              searchRecordStoreFamilyState.atomFamily(
+                (valueToPersist as { id: string }).id,
+              ),
+            );
+            if (searchRecord?.label) {
+              const relationObjectNameSingular = (
+                fieldDefinition as FieldDefinition<FieldRelationMetadata>
+              ).metadata.relationObjectMetadataNameSingular;
+              const relatedObjectMetadata = objectMetadataItems.find(
+                (item) =>
+                  item.nameSingular === relationObjectNameSingular,
+              );
+              const labelIdentifierField =
+                relatedObjectMetadata?.fields.find(
+                  (f) =>
+                    f.id ===
+                    relatedObjectMetadata?.labelIdentifierFieldMetadataId,
+                );
+              store.set(
+                recordStoreFamilySelector.selectorFamily({
+                  recordId,
+                  fieldName,
+                }),
+                {
+                  id: (valueToPersist as { id: string }).id,
+                  __typename:
+                    getObjectTypename(relationObjectNameSingular),
+                  [labelIdentifierField?.name ?? 'name']:
+                    searchRecord.label,
+                },
+              );
+            }
+          } else {
+            store.set(
+              recordStoreFamilySelector.selectorFamily({
+                recordId,
+                fieldName,
+              }),
+              null,
+            );
+          }
+
           upsertRecordsInStore({
             partialRecords: [
               getRecordFromRecordNode({
@@ -244,6 +290,58 @@ export const usePersistField = ({
             idToUpdate: recordId,
             updateOneRecordInput: updateInput,
           });
+
+          if (valueToPersist) {
+            const searchRecord = store.get(
+              searchRecordStoreFamilyState.atomFamily(
+                (valueToPersist as { id: string }).id,
+              ),
+            );
+            if (searchRecord?.label) {
+              const morphRelation = (
+                fieldDefinition as FieldDefinition<FieldMorphRelationMetadata>
+              ).metadata.morphRelations.find(
+                  (r) =>
+                    r.targetObjectMetadata.id ===
+                    (valueToPersist as any).objectMetadataId,
+              );
+              const relationObjectNameSingular =
+                morphRelation?.targetObjectMetadata.nameSingular;
+              if (relationObjectNameSingular) {
+                const relatedObjectMetadata = objectMetadataItems.find(
+                  (item) =>
+                    item.nameSingular === relationObjectNameSingular,
+                );
+                const labelIdentifierField =
+                  relatedObjectMetadata?.fields.find(
+                    (f) =>
+                      f.id ===
+                      relatedObjectMetadata?.labelIdentifierFieldMetadataId,
+                  );
+                store.set(
+                  recordStoreFamilySelector.selectorFamily({
+                    recordId,
+                    fieldName,
+                  }),
+                  {
+                    id: (valueToPersist as { id: string }).id,
+                    __typename:
+                      getObjectTypename(relationObjectNameSingular),
+                    [labelIdentifierField?.name ?? 'name']:
+                      searchRecord.label,
+                  },
+                );
+              }
+            }
+          } else {
+            store.set(
+              recordStoreFamilySelector.selectorFamily({
+                recordId,
+                fieldName,
+              }),
+              null,
+            );
+          }
 
           const morphForeignKeyGqlFields: Record<string, true> = {};
 

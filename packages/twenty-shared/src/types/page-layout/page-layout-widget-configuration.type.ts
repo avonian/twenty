@@ -168,6 +168,10 @@ export type WorkflowRunConfiguration = {
   configurationType: 'WORKFLOW_RUN';
 };
 
+export type VersionsConfiguration = {
+  configurationType: 'VERSIONS';
+};
+
 export type PageLayoutWidgetConfiguration =
   | AggregateChartConfiguration
   | PieChartConfiguration
@@ -190,4 +194,5 @@ export type PageLayoutWidgetConfiguration =
   | WorkflowConfiguration
   | WorkflowVersionConfiguration
   | WorkflowRunConfiguration
-  | EmailThreadConfiguration;
+  | EmailThreadConfiguration
+  | VersionsConfiguration;

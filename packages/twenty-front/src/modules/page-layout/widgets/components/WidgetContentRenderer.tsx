@@ -21,6 +21,7 @@ import { TimelineWidget } from '@/page-layout/widgets/timeline/components/Timeli
 import { WorkflowRunWidget } from '@/page-layout/widgets/workflow/components/WorkflowRunWidget';
 import { WorkflowVersionWidget } from '@/page-layout/widgets/workflow/components/WorkflowVersionWidget';
 import { RecordTableWidgetRenderer } from '@/page-layout/widgets/record-table/components/RecordTableWidgetRenderer';
+import { VersionsWidget } from '@/page-layout/widgets/versions/components/VersionsWidget';
 import { WorkflowWidget } from '@/page-layout/widgets/workflow/components/WorkflowWidget';
 import { useLayoutRenderingContext } from '@/ui/layout/contexts/LayoutRenderingContext';
 import { isDefined } from 'twenty-shared/utils';
@@ -107,6 +108,9 @@ export const WidgetContentRenderer = ({
 
     case WidgetType.EMAIL_THREAD:
       return <EmailThreadWidget widget={widget} />;
+
+    case WidgetType.VERSIONS:
+      return <VersionsWidget />;
 
     default:
       return null;
