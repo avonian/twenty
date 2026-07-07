@@ -5,6 +5,8 @@ import { type Task } from '@/activities/types/Task';
 import { type TaskTarget } from '@/activities/types/TaskTarget';
 import { getActivityTargetObjectRecords } from '@/activities/utils/getActivityTargetObjectRecords';
 import { objectMetadataItemsSelector } from '@/object-metadata/states/objectMetadataItemsSelector';
+import { useUpdateOneRecord } from '@/object-record/hooks/useUpdateOneRecord';
+import { useOpenFilesFieldInput } from '@/object-record/record-field/ui/meta-types/input/hooks/useOpenFilesFieldInput';
 import { useOpenMorphRelationManyToOneFieldInput } from '@/object-record/record-field/ui/meta-types/input/hooks/useOpenMorphRelationManyToOneFieldInput';
 import { useOpenMorphRelationOneToManyFieldInput } from '@/object-record/record-field/ui/meta-types/input/hooks/useOpenMorphRelationOneToManyFieldInput';
 import { useOpenRelationFromManyFieldInput } from '@/object-record/record-field/ui/meta-types/input/hooks/useOpenRelationFromManyFieldInput';
@@ -16,6 +18,7 @@ import {
   type FieldRelationFromManyValue,
   type FieldRelationValue,
 } from '@/object-record/record-field/ui/types/FieldMetadata';
+import { isFieldFiles } from '@/object-record/record-field/ui/types/guards/isFieldFiles';
 import { isFieldMorphRelation } from '@/object-record/record-field/ui/types/guards/isFieldMorphRelation';
 import { isFieldMorphRelationManyToOne } from '@/object-record/record-field/ui/types/guards/isFieldMorphRelationManyToOne';
 import { isFieldMorphRelationOneToMany } from '@/object-record/record-field/ui/types/guards/isFieldMorphRelationOneToMany';
@@ -46,6 +49,10 @@ export const useOpenFieldWidgetFieldInputEditMode = () => {
   const { openMorphRelationManyToOneFieldInput } =
     useOpenMorphRelationManyToOneFieldInput();
 
+  const { openFilesFieldInput } = useOpenFilesFieldInput();
+
+  const { updateOneRecord } = useUpdateOneRecord();
+
   const { pushFocusItemToFocusStack } = usePushFocusItemToFocusStack();
 
   const instanceId = useAvailableComponentInstanceIdOrThrow(
@@ -60,6 +67,52 @@ export const useOpenFieldWidgetFieldInputEditMode = () => {
       fieldDefinition: FieldDefinition<FieldMetadata>;
       recordId: string;
     }) => {
+      // FILES: an empty field opens the native file picker directly; a non-empty one
+      // falls through to the focus push below so the edit portal renders FilesFieldInput
+      // (which only renders once there is at least one file to manage).
+      if (isFieldFiles(fieldDefinition)) {
+        const fieldValue = store.get(
+          recordStoreFamilySelector.selectorFamily({
+            recordId,
+            fieldName: fieldDefinition.metadata.fieldName,
+          }),
+        ) as unknown[] | undefined;
+
+        const isEmpty = !isDefined(fieldValue) || fieldValue.length === 0;
+
+        if (isEmpty) {
+          const objectMetadataItems = store.get(
+            objectMetadataItemsSelector.atom,
+          );
+          const objectMetadataItem = objectMetadataItems.find(
+            (item) =>
+              item.nameSingular ===
+              fieldDefinition.metadata.objectMetadataNameSingular,
+          );
+
+          if (isDefined(objectMetadataItem)) {
+            openFilesFieldInput({
+              fieldName: fieldDefinition.metadata.fieldName,
+              fieldMetadataId: fieldDefinition.fieldMetadataId,
+              recordId,
+              prefix: instanceId,
+              updateRecord: (updateInput) =>
+                updateOneRecord({
+                  objectNameSingular: objectMetadataItem.nameSingular,
+                  idToUpdate: recordId,
+                  updateOneRecordInput: updateInput,
+                }),
+              fieldDefinition: {
+                metadata: {
+                  settings: fieldDefinition.metadata.settings ?? undefined,
+                },
+              },
+            });
+            return;
+          }
+        }
+      }
+
       if (
         isFieldRelationOneToMany(fieldDefinition) &&
         ['taskTarget', 'noteTarget'].includes(
@@ -151,12 +204,14 @@ export const useOpenFieldWidgetFieldInputEditMode = () => {
     [
       instanceId,
       openActivityTargetCellEditMode,
+      openFilesFieldInput,
       openMorphRelationManyToOneFieldInput,
       openMorphRelationOneToManyFieldInput,
       openRelationFromManyFieldInput,
       openRelationToOneFieldInput,
       pushFocusItemToFocusStack,
       store,
+      updateOneRecord,
     ],
   );
 
