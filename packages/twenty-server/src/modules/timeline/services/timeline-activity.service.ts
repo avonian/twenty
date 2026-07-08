@@ -290,6 +290,8 @@ export class TimelineActivityService {
           ).find(
             ([columnName, columnValue]: [string, string]) =>
               columnName !== activityType + 'Id' &&
+              // Flamagas field-comment anchor — skip it (see note below).
+              columnName !== 'targetFieldMetadataId' &&
               columnName.endsWith('Id') &&
               columnValue !== null,
           )?.[0];
@@ -407,6 +409,9 @@ export class TimelineActivityService {
         const targetColumnName = Object.entries(event.properties.after).find(
           ([columnName, columnValue]: [string, string]) =>
             columnName !== activityType + 'Id' &&
+            // Flamagas field-comment anchor — a fieldMetadata UUID marker, not a
+            // record target; `fieldMetadata` is not a valid timeline target.
+            columnName !== 'targetFieldMetadataId' &&
             columnName.endsWith('Id') &&
             columnValue !== null,
         )?.[0];

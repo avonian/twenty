@@ -73,7 +73,9 @@ export class PaisUltimoEventoListener {
   }
 
   @OnDatabaseBatchEvent(EVENTO, DatabaseEventAction.DESTROYED)
-  async handleDestroyed(payload: WorkspaceEventBatch<ObjectRecordDestroyEvent>) {
+  async handleDestroyed(
+    payload: WorkspaceEventBatch<ObjectRecordDestroyEvent>,
+  ) {
     await this.recompute(payload as WorkspaceEventBatch<EventoChangeEvent>);
   }
 

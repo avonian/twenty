@@ -1,5 +1,6 @@
 export type { JSONContent } from '@tiptap/core';
 export * from './emails/clean-suspended-workspace.email';
+export * from './emails/note-reply-notification.email';
 export * from './emails/password-reset-link.email';
 export * from './emails/password-update-notify.email';
 export * from './emails/send-email-verification-link.email';
