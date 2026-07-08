@@ -1,10 +1,16 @@
 import { styled } from '@linaria/react';
 import { useLingui } from '@lingui/react/macro';
-import { AppPath } from 'twenty-shared/types';
+import { AppPath, CoreObjectNameSingular } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
-import { IconArrowRight, IconTrash } from 'twenty-ui-deprecated/display';
+import {
+  IconArrowRight,
+  IconPlus,
+  IconTrash,
+} from 'twenty-ui-deprecated/display';
+import { Button } from 'twenty-ui-deprecated/input';
 import { themeCssVariables } from 'twenty-ui-deprecated/theme-constants';
 
+import { useOpenCreateActivityDrawer } from '@/activities/hooks/useOpenCreateActivityDrawer';
 import { FIELD_COMMENT_DEEP_LINK_PARAM } from '@/field-comments/constants/FieldCommentDeepLinkParam';
 import {
   NOTE_BUCKET,
@@ -12,6 +18,7 @@ import {
 } from '@/field-comments/constants/NoteBucket';
 import { FIELD_OBJECTIVE_DEEP_LINK_PARAM } from '@/field-objectives/constants/FieldObjectiveDeepLinkParam';
 import { LoadRelatedNotesButton } from '@/load-related-notes/components/LoadRelatedNotesButton';
+import { LOAD_RELATED_NOTES_OBJECT_NAME_SINGULAR } from '@/load-related-notes/constants/LoadRelatedNotesObjectNameSingular';
 import {
   type EventoRelatedNoteSource,
   useEventoRelatedNotes,
@@ -31,6 +38,12 @@ const StyledHeader = styled.div`
   align-items: center;
   display: flex;
   justify-content: space-between;
+`;
+
+const StyledHeaderActions = styled.div`
+  align-items: center;
+  display: flex;
+  gap: ${themeCssVariables.spacing[2]};
 `;
 
 const StyledTitle = styled.span`
@@ -133,6 +146,13 @@ export const EventoNotesTable = ({
 
   const isObjectives = bucket === NOTE_BUCKET.OBJECTIVE;
 
+  // Same flow the other objects use for "+ Add note": open the native create
+  // drawer, linking the new note to this evento at record level (noteTarget's
+  // targetFieldMetadataId stays null, so it's a general note, not a field one).
+  const openCreateActivity = useOpenCreateActivityDrawer({
+    activityObjectNameSingular: CoreObjectNameSingular.Note,
+  });
+
   const openSource = (source: EventoRelatedNoteSource | null) => {
     if (!isDefined(source)) {
       return;
@@ -158,11 +178,32 @@ export const EventoNotesTable = ({
     <StyledContainer>
       <StyledHeader>
         <StyledTitle>{isObjectives ? t`Objectives` : t`Notes`}</StyledTitle>
-        <LoadRelatedNotesButton
-          eventoId={eventoId}
-          bucket={bucket}
-          size="small"
-        />
+        <StyledHeaderActions>
+          <LoadRelatedNotesButton
+            eventoId={eventoId}
+            bucket={bucket}
+            size="small"
+          />
+          {!isObjectives && (
+            <Button
+              Icon={IconPlus}
+              title={t`Add note`}
+              variant="secondary"
+              size="small"
+              onClick={() =>
+                openCreateActivity({
+                  targetableObjects: [
+                    {
+                      id: eventoId,
+                      targetObjectNameSingular:
+                        LOAD_RELATED_NOTES_OBJECT_NAME_SINGULAR,
+                    },
+                  ],
+                })
+              }
+            />
+          )}
+        </StyledHeaderActions>
       </StyledHeader>
 
       {!loading && rows.length === 0 ? (
