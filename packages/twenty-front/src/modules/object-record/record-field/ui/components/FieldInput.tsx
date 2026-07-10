@@ -34,6 +34,8 @@ import { isFieldMultiSelect } from '@/object-record/record-field/ui/types/guards
 import { isFieldNumber } from '@/object-record/record-field/ui/types/guards/isFieldNumber';
 import { isFieldRating } from '@/object-record/record-field/ui/types/guards/isFieldRating';
 import { isFieldRawJson } from '@/object-record/record-field/ui/types/guards/isFieldRawJson';
+import { isFieldTable } from '@/object-record/record-field/ui/types/guards/isFieldTable';
+import { TableFieldInput } from '@/object-record/record-field/ui/meta-types/input/components/TableFieldInput';
 import { isFieldRelationManyToOne } from '@/object-record/record-field/ui/types/guards/isFieldRelationManyToOne';
 import { isFieldRelationOneToMany } from '@/object-record/record-field/ui/types/guards/isFieldRelationOneToMany';
 import { isFieldRichText } from '@/object-record/record-field/ui/types/guards/isFieldRichText';
@@ -90,6 +92,8 @@ export const FieldInput = () => {
         <MultiSelectFieldInput />
       ) : isFieldAddress(fieldDefinition) ? (
         <AddressFieldInput />
+      ) : isFieldTable(fieldDefinition) ? (
+        <TableFieldInput />
       ) : isFieldRawJson(fieldDefinition) ? (
         <RawJsonFieldInput />
       ) : isFieldArray(fieldDefinition) ? (

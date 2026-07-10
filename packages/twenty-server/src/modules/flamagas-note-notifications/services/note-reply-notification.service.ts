@@ -87,9 +87,7 @@ export class NoteReplyNotificationService {
     const createdNotes = await noteRepository.find({
       where: { id: In(noteIds) },
     });
-    const replies = createdNotes.filter((note) =>
-      isDefined(note.parentNoteId),
-    );
+    const replies = createdNotes.filter((note) => isDefined(note.parentNoteId));
 
     if (replies.length === 0) {
       return;

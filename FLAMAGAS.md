@@ -220,6 +220,75 @@ field after reload. Guard: `skipPersist` when the title draft is untouched.
   `parentNoteId`, so the listener passes note ids and the service **re-fetches**
   them from the DB. Verified end-to-end (job reaches the `email-queue`).
 
+- **`TABLE` field type** (`FieldMetadataType.TABLE`) — a new first-class field
+  type for pre-filled spreadsheet-style tables (replacing ad-hoc JSON fields).
+  **In progress.** *Phases 1–2 done & verified* (backend end-to-end): the value
+  is a **jsonb** column holding `{ cells: (string|number|null)[][] }`; the table
+  **schema** (columns/headers, `rowCount`, `firstColumnLabels`, `cellType`) lives
+  in the field's `settings` (`FieldMetadataTableSettings`). It mirrors `RAW_JSON`
+  at the storage/GraphQL layer (JSON scalar, jsonb column). *Phases 3–4 done*
+  (frontend): `TableFieldDisplay` (read-only grid) + `TableFieldInput` (editable
+  grid — headers/first-column labels locked, blank cells editable) render/edit
+  the cells against the schema, wired into `FieldDisplay`/`FieldInput`. Metadata
+  codegen was rerun so the frontend `FieldMetadataType` includes `TABLE`.
+  **Read-path fix (critical):** the record GraphQL query builder
+  (`mapFieldMetadataToGraphQLQuery`) only selects a field as a scalar when
+  `isNonCompositeField(type)` is true; otherwise it falls through the composite
+  branches to `return ''` and **omits the field entirely**. `isNonCompositeField`
+  did not list `TABLE`, so `tablaDemo` was never fetched → `fieldValue` was always
+  `undefined` → treated as empty → `RecordInlineCellDisplayMode` showed the label
+  placeholder and never rendered `FieldDisplay`/`TableFieldDisplay`. This made it
+  look like edits "didn't save" when in fact writes persisted fine but were never
+  read back. Fix: add `FieldMetadataType.TABLE` to
+  `object-record/object-filter-dropdown/utils/isNonCompositeField.ts` (next to
+  `RAW_JSON`). Verified end-to-end: grid renders stored values, edits persist and
+  survive refresh.
+  *Phase 5 done* (Settings → Data Model configurator): `TABLE` is now a
+  selectable type in the field-creation picker (`isFieldTypeSupportedInSettings`
+  no longer excludes it). A new configurator (`fields/forms/table/`) lets users
+  define the **cell type** (Number/Text), **columns** (dynamic header list), and
+  **rows** (dynamic left-column label list; row count = number of labels) with a
+  live structural preview. It's wired into the central dispatcher
+  `SettingsDataModelFieldSettingsFormCard.tsx` (added `tableFieldFormSchema` to
+  the discriminated union, excluded `TABLE` from the catch-all `otherFields`
+  enum, added `TABLE` to `previewableTypes` + a dispatch branch). Form `settings`
+  flow to `createOneField` unchanged (the page spreads `...formValues`). Verified
+  end-to-end: a field created via the UI persists the full
+  `FieldMetadataTableSettings` and renders/edits on records.
+  *Phase 6 done* (JSON→TABLE conversion of the real fichas) — **workspace
+  metadata migration, not code** (done via the metadata API, per the
+  `~/Documents/Flamagas` fichas). Since field `type` is immutable
+  (`UpdateFieldInput` omits it), each conversion = delete the RAW_JSON field +
+  recreate a TABLE field with the same `name`/`label`/`icon` + `settings`.
+  Converted 12 fields: `pais` msPl/msUt/msGas/msOut/msRyo (6-col Mercado/
+  Organizado/Independiente × Uds/%, brand rows per segment) + priceMapPl/Ut/Gas/
+  Out (1 Precio col, model rows); `distribuidor` datosGtm (Universo/POS Distr ×
+  Tobacco Shop/Souvenir/CVS/WHs/Alternative/TOTAL); `performance` & `performance
+  Regular` datosDn (Universo/POS Distr/POS Clipper × same 6 rows; placed as a
+  FIELD widget atop the existing "Canal Organizado" image in each object's "ND"
+  pageLayoutTab — the ND sheet's "POS Clipper comes from the Distribuidor ficha"
+  note is ignored for now, cells are manual). All cellType
+  NUMBER. Deleted 6 `performance` JSON fields that have **no** ficha table
+  (datosCarrusel/datosLicencias/datosPortfolioRatios/datosTuristicas/estructura
+  Precios/planPromocional — they're scalar/image data in the fichas), plus the
+  demo `tablaDemo`/`testSebas`. Left `pais.priceMapRyo` as RAW_JSON (its ficha
+  sheet is empty). **País record-page tabs**: the pre-existing (empty) "Market
+  Share" and "Price Maps" pageLayoutTabs were populated with one FIELD
+  `pageLayoutWidget` per table (via `createPageLayoutWidget`); the MS/PM fields
+  are also grouped into "MS"/"PM" `viewFieldGroup`s on the record-page view
+  (`c05b60eb… País Record Page Fields`), so they show in both the tab and the
+  left summary (kept intentionally).
+  **Distribuidor GTM** (refinement): the single `datosGtm` table (Universo/POS
+  Distr) only captured the ficha's "Rellenar Tabla". The GTM sheet's coverage
+  matrix was split into **3 new TABLE fields** — `gtmIndependiente` (Tobacco
+  Shop/CVS/Souvenir/WH), `gtmOrganizado` (HM·SM·CVS/C&C/DIY/DISCOUNTERS/GAS ST./
+  E-COMMERCE), `gtmAlternativo` (Recreational/Customized B2B/B2C) — each one
+  "Cobertura" column, **cellType TEXT** (the ficha uses a Bien/Regular/Mal
+  dropdown, which TABLE cells can't express). All 4 GTM fields grouped into a
+  "GTM" `viewFieldGroup` (left) + the pre-existing empty "GTM" pageLayoutTab was
+  populated with their 4 FIELD widgets.
+  **Pending:** Phase 7 (CSV export/import).
+
 > Note: the `note.bucket` and `note.type`(`typeCustom`) SELECT fields are the
 > exception — they were added as **custom fields via the Metadata API**, so they
 > live only in the DB (see §0), not in these builders.
@@ -250,6 +319,34 @@ merges may conflict:
 - `page-layout/widgets/field/hooks/useOpenFieldWidgetFieldInputEditMode.ts` — FILES section-tab editing (§4g).
 - `modules/modules.module.ts` — registers the Flamagas backend modules (`FlamagasDerivedFieldsModule`, `FlamagasNoteNotificationsModule`).
 - `twenty-emails/src/index.ts` — exports the note-reply notification email template.
+- **`TABLE` field type (Phases 1–4)** — core files extended to recognize the new
+  type (mostly alongside `RAW_JSON`): shared `types/FieldMetadataType.ts`,
+  `types/FieldMetadataSettings.ts`, `types/FieldMetadataDefaultValue.ts`; server
+  `workspace-migration-runner/utils/field-metadata-type-to-column-type.util.ts`,
+  `graphql/workspace-schema-builder/services/type-mapper.service.ts`,
+  `common-args-processors/data-arg-processor/data-arg-processor.service.ts`,
+  `filter-arg-processor/utils/get-operators-for-field-type.util.ts`,
+  `open-api/utils/generate-random-field-value.util.ts`,
+  `flat-field-metadata/services/flat-field-metadata-type-validator.service.ts`,
+  `flat-field-metadata/utils/from-create-field-input-to-flat-field-metadatas-to-create.util.ts`
+  (+ integration test fixtures). Frontend switches/registries: `record-field/ui/
+  components/{FieldDisplay,FieldInput}.tsx`, `types/FieldMetadata.ts`,
+  `types/guards/assertFieldMetadata.ts`, `hooks/usePersistField.ts`,
+  `utils/{isFieldValueEmpty,generateEmptyFieldValue}.ts`, `spreadsheet-import/*`,
+  `settings/data-model/constants/SettingsNonCompositeFieldTypeConfigs.ts`,
+  `settings/data-model/utils/isFieldTypeSupportedInSettings.ts` (Phase 5: no
+  longer excludes `TABLE`),
+  `pages/settings/data-model/constants/DefaultIconsByFieldType.ts`,
+  `object-record/object-filter-dropdown/utils/isNonCompositeField.ts` (**read-path
+  critical** — must list `TABLE` or the field is dropped from the record query;
+  see §4),
+  `settings/data-model/fields/forms/components/SettingsDataModelFieldSettingsFormCard.tsx`
+  (Phase 5: TABLE branch in the settings-form discriminated union + dispatch)
+  (+ new, self-contained `TableFieldDisplay`/`TableFieldInput`/`useTableField*`/
+  guards, and Phase 5 `settings/data-model/fields/forms/table/*` configurator).
+  **Largest merge surface on the branch** — an upstream field-type
+  addition/removal will touch these same switches. NB: `generated-metadata/
+  graphql.ts` is regenerated by codegen (don't hand-edit).
 
 Get the authoritative list anytime:
 ```

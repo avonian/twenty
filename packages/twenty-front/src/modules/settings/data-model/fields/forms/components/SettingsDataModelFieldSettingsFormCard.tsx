@@ -25,6 +25,8 @@ import {
   settingsDataModelFieldSelectFormSchema,
 } from '@/settings/data-model/fields/forms/select/components/SettingsDataModelFieldSelectForm';
 import { SettingsDataModelFieldSelectSettingsFormCard } from '@/settings/data-model/fields/forms/select/components/SettingsDataModelFieldSelectSettingsFormCard';
+import { settingsDataModelFieldTableFormSchema } from '@/settings/data-model/fields/forms/table/components/SettingsDataModelFieldTableForm';
+import { SettingsDataModelFieldTableSettingsFormCard } from '@/settings/data-model/fields/forms/table/components/SettingsDataModelFieldTableSettingsFormCard';
 import { SettingsDataModelFieldPreviewWidget } from '@/settings/data-model/fields/preview/components/SettingsDataModelFieldPreviewWidget';
 
 import { Separator } from '@/settings/components/Separator';
@@ -123,6 +125,10 @@ const arrayFieldFormSchema = z
   .merge(mergeSettingsSchemas(settingsDataModelFieldMaxValuesSchema))
   .extend(isUniqueFieldFormSchema.shape);
 
+const tableFieldFormSchema = z
+  .object({ type: z.literal(FieldMetadataType.TABLE) })
+  .extend(settingsDataModelFieldTableFormSchema.shape);
+
 const filesFieldFormSchema = z
   .object({ type: z.literal(FieldMetadataType.FILES) })
   .merge(mergeSettingsSchemas(settingsDataModelFieldMaxValuesSchema));
@@ -148,6 +154,7 @@ const otherFieldsFormSchema = z
           FieldMetadataType.LINKS,
           FieldMetadataType.ARRAY,
           FieldMetadataType.FILES,
+          FieldMetadataType.TABLE,
         ]),
       ) as [FieldMetadataType, ...FieldMetadataType[]],
     ),
@@ -173,6 +180,7 @@ export const settingsDataModelFieldSettingsFormSchema = z.discriminatedUnion(
     linksFieldFormSchema,
     arrayFieldFormSchema,
     filesFieldFormSchema,
+    tableFieldFormSchema,
     otherFieldsFormSchema,
   ],
 );
@@ -204,6 +212,7 @@ const previewableTypes = [
   FieldMetadataType.MORPH_RELATION,
   FieldMetadataType.RICH_TEXT,
   FieldMetadataType.SELECT,
+  FieldMetadataType.TABLE,
   FieldMetadataType.TEXT,
   FieldMetadataType.UUID,
 ];
@@ -316,6 +325,15 @@ export const SettingsDataModelFieldSettingsFormCard = ({
         existingFieldMetadataId={existingFieldMetadataId}
         fieldType={fieldType}
         objectNameSingular={objectNameSingular}
+        disabled={disabled}
+      />
+    );
+  }
+
+  if (fieldType === FieldMetadataType.TABLE) {
+    return (
+      <SettingsDataModelFieldTableSettingsFormCard
+        existingFieldMetadataId={existingFieldMetadataId}
         disabled={disabled}
       />
     );

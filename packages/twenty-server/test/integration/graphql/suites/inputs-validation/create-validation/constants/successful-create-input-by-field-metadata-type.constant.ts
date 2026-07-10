@@ -123,6 +123,16 @@ export const successfulCreateInputByFieldMetadataType: {
       },
     },
   ],
+  [FieldMetadataType.TABLE]: [
+    {
+      input: {
+        tableField: { cells: [['a', 'b']] },
+      },
+      validateInput: (record: Record<string, any>) => {
+        return record.tableField.cells[0][0] === 'a';
+      },
+    },
+  ],
   [FieldMetadataType.ARRAY]: [
     {
       input: {

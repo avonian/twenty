@@ -140,7 +140,8 @@ export const generateRandomFieldValue = ({
       return [];
     }
 
-    case FieldMetadataType.FILES: {
+    case FieldMetadataType.FILES:
+    case FieldMetadataType.TABLE: {
       return null;
     }
 

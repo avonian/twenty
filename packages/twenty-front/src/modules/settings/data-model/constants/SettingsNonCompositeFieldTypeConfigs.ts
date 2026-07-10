@@ -141,6 +141,14 @@ export const SETTINGS_NON_COMPOSITE_FIELD_TYPE_CONFIGS: SettingsNonCompositeFiel
       category: 'Advanced',
       exampleValues: [['value1', 'value2'], ['value3'], []],
     } as const satisfies SettingsFieldTypeConfig<FieldArrayValue>,
+    // TABLE (Flamagas): pre-filled spreadsheet field. The Settings configurator
+    // (Phase 5) isn't built yet, so it's gated out of the picker in
+    // isFieldTypeSupportedInSettings until then.
+    [FieldMetadataType.TABLE]: {
+      label: 'Tabla',
+      Icon: IllustrationIconArray,
+      category: 'Advanced',
+    } as const satisfies SettingsFieldTypeConfig<FieldJsonValue>,
     [FieldMetadataType.FILES]: {
       label: 'Files',
       Icon: IllustrationIconFile,

@@ -51,6 +51,7 @@ export const getOperatorsForFieldType = (
 
     case FieldMetadataType.RAW_JSON:
     case FieldMetadataType.FILES:
+    case FieldMetadataType.TABLE:
       return RAW_JSON_FILTER_OPERATORS;
 
     case FieldMetadataType.RICH_TEXT:

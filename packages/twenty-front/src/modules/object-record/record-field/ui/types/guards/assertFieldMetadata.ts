@@ -26,6 +26,7 @@ import {
   type FieldRelationMetadata,
   type FieldRichTextMetadata,
   type FieldSelectMetadata,
+  type FieldTableMetadata,
   type FieldTextMetadata,
   type FieldUuidMetadata,
 } from '@/object-record/record-field/ui/types/FieldMetadata';
@@ -82,7 +83,9 @@ type AssertFieldMetadataFunction = <
                                                   ? FieldArrayMetadata
                                                   : E extends 'PHONES'
                                                     ? FieldPhonesMetadata
-                                                    : never,
+                                                    : E extends 'TABLE'
+                                                      ? FieldTableMetadata
+                                                      : never,
 >(
   fieldType: E,
   fieldTypeGuard: (

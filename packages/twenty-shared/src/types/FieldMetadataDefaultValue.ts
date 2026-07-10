@@ -90,6 +90,8 @@ export type FieldMetadataDefaultValueMapping = {
   [FieldMetadataType.SELECT]: string | null;
   [FieldMetadataType.MULTI_SELECT]: string[] | null;
   [FieldMetadataType.RAW_JSON]: object | null;
+  // TABLE (Flamagas): jsonb value { cells: (string | number | null)[][] }.
+  [FieldMetadataType.TABLE]: object | null;
   [FieldMetadataType.RICH_TEXT]: FieldMetadataDefaultValueRichText | null;
   [FieldMetadataType.ACTOR]: FieldMetadataDefaultActor | null;
   [FieldMetadataType.ARRAY]: string[] | null;

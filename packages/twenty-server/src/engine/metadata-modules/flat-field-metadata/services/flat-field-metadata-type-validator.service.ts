@@ -74,6 +74,8 @@ export class FlatFieldMetadataTypeValidatorService {
       PHONES: DEFAULT_NO_VALIDATION,
       POSITION: validatePositionFlatFieldMetadata,
       RAW_JSON: DEFAULT_NO_VALIDATION,
+      // TABLE (Flamagas): settings-schema validation is added in a later phase.
+      TABLE: DEFAULT_NO_VALIDATION,
       RICH_TEXT: DEFAULT_NO_VALIDATION,
       TEXT: DEFAULT_NO_VALIDATION,
       TS_VECTOR: validateTsVectorFlatFieldMetadata,

@@ -31,6 +31,7 @@ import { isFieldPhonesValue } from '@/object-record/record-field/ui/types/guards
 import { isFieldPosition } from '@/object-record/record-field/ui/types/guards/isFieldPosition';
 import { isFieldRating } from '@/object-record/record-field/ui/types/guards/isFieldRating';
 import { isFieldRawJson } from '@/object-record/record-field/ui/types/guards/isFieldRawJson';
+import { isFieldTable } from '@/object-record/record-field/ui/types/guards/isFieldTable';
 import { isFieldRelation } from '@/object-record/record-field/ui/types/guards/isFieldRelation';
 import { isFieldRichText } from '@/object-record/record-field/ui/types/guards/isFieldRichText';
 import { isFieldRichTextValue } from '@/object-record/record-field/ui/types/guards/isFieldRichTextValue';
@@ -62,6 +63,7 @@ export const isFieldValueEmpty = ({
     isFieldRating(fieldDefinition) ||
     isFieldBoolean(fieldDefinition) ||
     isFieldRawJson(fieldDefinition) ||
+    isFieldTable(fieldDefinition) ||
     isFieldPosition(fieldDefinition)
   ) {
     return isValueEmpty(fieldValue);

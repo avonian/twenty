@@ -74,6 +74,7 @@ export class TypeMapperService {
     [FieldMetadataType.NUMERIC, BigFloatScalarType],
     [FieldMetadataType.POSITION, PositionScalarType],
     [FieldMetadataType.RAW_JSON, GraphQLJSON],
+    [FieldMetadataType.TABLE, GraphQLJSON],
     [FieldMetadataType.ARRAY, StringArrayScalarType],
     [FieldMetadataType.TS_VECTOR, TSVectorScalarType],
   ]);
@@ -179,6 +180,7 @@ export class TypeMapperService {
       [FieldMetadataType.POSITION, FloatFilterType],
       [FieldMetadataType.FILES, RawJsonFilterType],
       [FieldMetadataType.RAW_JSON, RawJsonFilterType],
+      [FieldMetadataType.TABLE, RawJsonFilterType],
       [FieldMetadataType.RICH_TEXT, RichTextFilterType],
       [FieldMetadataType.ARRAY, ArrayFilterType],
       [FieldMetadataType.MULTI_SELECT, MultiSelectFilterType],

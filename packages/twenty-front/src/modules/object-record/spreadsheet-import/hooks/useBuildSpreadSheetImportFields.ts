@@ -87,6 +87,7 @@ export const useBuildSpreadsheetImportFields = () => {
         ];
 
       case FieldMetadataType.FILES:
+      case FieldMetadataType.TABLE:
       case FieldMetadataType.POSITION:
       case FieldMetadataType.MORPH_RELATION:
       case FieldMetadataType.ACTOR:

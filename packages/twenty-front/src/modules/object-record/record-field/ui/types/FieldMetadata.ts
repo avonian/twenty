@@ -6,6 +6,7 @@ import {
   ConnectedAccountProvider,
   type AllowedAddressSubField,
   type FieldMetadataMultiItemSettings,
+  type FieldMetadataTableSettings,
   type FileCategory,
 } from 'twenty-shared/types';
 import { type ThemeColor } from 'twenty-ui-deprecated/theme';
@@ -131,6 +132,13 @@ export type FieldRawJsonMetadata = BaseFieldMetadata & {
   settings?: null;
 };
 
+// TABLE (Flamagas): the grid schema (columns/headers, rowCount, first-column
+// labels, cellType) lives in settings; the filled cells live in the value.
+export type FieldTableMetadata = BaseFieldMetadata & {
+  placeHolder?: string;
+  settings?: FieldMetadataTableSettings | null;
+};
+
 export type FieldRichTextMetadata = BaseFieldMetadata & {
   settings?: null;
 };
@@ -225,6 +233,7 @@ export type FieldMetadata =
   | FieldArrayMetadata
   | FieldTsVectorMetadata
   | FieldRawJsonMetadata
+  | FieldTableMetadata
   | FieldRichTextMetadata;
 
 export type FieldTextValue = string;
@@ -291,6 +300,9 @@ export type FieldMorphRelationOneToManyValue = {
 
 export type Json = ZodHelperLiteral | { [key: string]: Json } | Json[];
 export type FieldJsonValue = Record<string, Json> | Json[] | null;
+
+export type FieldTableCellValue = string | number | null;
+export type FieldTableValue = { cells: FieldTableCellValue[][] } | null;
 
 export type FieldRichTextValue = {
   blocknote: string | null;
