@@ -200,15 +200,32 @@ field after reload. Guard: `skipPersist` when the title draft is untouched.
   affected país/países (an update can move an evento between países, so both old
   and new are recomputed). First step of the "fetch from other tables" system —
   add more listeners here as more orange fields get automated.
-- **Note-reply email notifications** (`modules/flamagas-note-notifications/` +
+- **Note email notifications** (`modules/flamagas-note-notifications/` +
   template `twenty-emails/src/emails/note-reply-notification.email.tsx`, exported
-  from `twenty-emails/src/index.ts`): when a note thread gets a **new reply**,
-  emails every participant (root-note owner + prior repliers) **except the
-  reply's own author**. Creating a root note/comment sends nothing — replies only.
-  `@OnDatabaseBatchEvent('note', CREATED)` filters to notes with `parentNoteId`,
-  resolves participants from `note.createdByWorkspaceMemberId`, maps them to
-  addresses via `workspaceMember.userEmail`, and links to the target record's
-  Notes tab. Sends through the core global `EmailService` (BullMQ `email-queue`).
+  from `twenty-emails/src/index.ts`). **Two triggers**, both in
+  `note-reply-notification.listener.ts`:
+  - **Reply** — `@OnDatabaseBatchEvent('note', CREATED)`, filtered to notes with a
+    `parentNoteId`. Emails every thread participant (root-note owner + prior
+    repliers) **plus the owner of the record** the thread is attached to (the
+    object's *initial creator*), **except the reply's own author**. Owner comes
+    from the root record's `createdBy` via `getTargetOwnerMemberIds`. Subject
+    "Nueva respuesta de …"; email `kind: 'reply'`.
+  - **First note** — `@OnDatabaseBatchEvent('noteTarget', CREATED)`
+    (`notifyOwnerForCreatedNoteTargets`). When a **root note** (no parent) is
+    attached to a record, emails **that record's owner**, except the note's own
+    author. Subject "Nueva nota de …"; email `kind: 'note'`.
+  - **Why two triggers (important):** a first note can't use the note-CREATED
+    path because the frontend creates the `note` first (firing its CREATED event)
+    and the `noteTarget` in a **separate later mutation** (`useCreateFieldComment`),
+    so at note-CREATED time the record isn't resolvable. `noteTarget` CREATED
+    fires once the link exists. Replies carry **no** noteTarget
+    (`useReplyToFieldComment`), so they never hit the first-note path — no double
+    send. Records created via **API/import** have a null member owner
+    (`createdBySource` API/IMPORT) and are silently skipped — only
+    manually-created records have a member to notify.
+  Recipients are mapped to addresses via `workspaceMember.userEmail`; the email
+  links to the target record's Notes tab. Sends through the core global
+  `EmailService` (BullMQ `email-queue`).
   Copy is **Spanish**. Dev uses `EMAIL_DRIVER=LOGGER` (prints, doesn't send);
   prod = the generic nodemailer **SMTP** driver (`EMAIL_SMTP_*`). Opt-out
   preferences are **deferred** (not built). Both modules are wired in
@@ -218,7 +235,13 @@ field after reload. Guard: `skipPersist` when the title draft is untouched.
   the flat name silently yields `undefined` (empty participants, no email). Also,
   the note-create event payload doesn't reliably carry the self-relation
   `parentNoteId`, so the listener passes note ids and the service **re-fetches**
-  them from the DB. Verified end-to-end (job reaches the `email-queue`).
+  them from the DB. The **reply** path is verified end-to-end (job reaches the
+  `email-queue`); the **first-note** (`noteTarget` CREATED) owner path was added
+  later and is **not yet live-verified** — needs a server+worker restart and a
+  first note authored by a non-owner. Scope note: the first-note path fires for
+  **any** root note attached to a record, including `bucket: OBJECTIVE` and
+  core Notes-tab notes — add a `bucket` filter if the owner should only be
+  notified for comments.
 
 > Note: the `note.bucket` and `note.type`(`typeCustom`) SELECT fields are the
 > exception — they were added as **custom fields via the Metadata API**, so they
@@ -289,4 +312,46 @@ git log --oneline origin/main..flamagas
 5. To write/read workspace data programmatically: a workspace **API key**
    (Settings → APIs) authorizes both `/graphql` (records) and `/metadata`
    (objects/fields/layouts). The key is a dev secret, not committed.
+
+---
+
+## 9. TABLE feature — split out for staging (2026-07-10)
+
+The custom `TABLE` field type is **deferred to next week** and its code was moved
+off the working branch. Branches:
+
+- **`flamagas`** — the **staging branch** (what gets deployed to the client's
+  staging), **WITHOUT** any TABLE code.
+- **`sebas`** — Sebas's working/feature branch, currently **WITHOUT** any TABLE
+  code (the TABLE work was moved out of it).
+- **`sebas-feature-tables`** — carries all TABLE work (the `TABLE` field type,
+  `isNonCompositeField` read-path fix, the Settings TABLE configurator, etc.).
+
+**Problem:** the workspace DB had 15 live `TABLE` fields. A server built from a
+branch without TABLE code (`flamagas`/`sebas`) does not recognise the type, so it
+would fail workspace schema generation / render at runtime. So before deploying
+`flamagas` to staging, the TABLE metadata was **removed from the DB** (while a
+`sebas-feature-tables` server was running, via the `/metadata` API — proper
+column drop + cascade of `viewField`/`pageLayoutWidget`):
+
+- Deleted 15 `TABLE` fields: `pais` (`msGas/msOut/msPl/msRyo/msUt`,
+  `priceMapGas/priceMapOut/priceMapPl/priceMapUt`), `distribuidor`
+  (`datosGtm/gtmAlternativo/gtmIndependiente/gtmOrganizado`), `performance`
+  (`datosDn`), `performanceRegular` (`datosDn`).
+- Removed the now-empty containers left behind: record-page tabs `Market Share`
+  (pais) and `GTM` (distribuidor); left-panel field groups `MS` (pais) and `GTM`
+  (distribuidor). Kept `Price Maps` tab (`priceMapRyo` RAW_JSON) and `ND` tabs
+  (`imagenNd` FILES) — those hold valid non-TABLE widgets. Left `performance`'s
+  pre-existing empty `Otros Datos` tab as-is.
+- `pais.priceMapRyo` stays **RAW_JSON** (never converted); still valid without
+  TABLE code.
+
+**DB snapshots** (in `~/Documents/Flamagas/`):
+- `after-table-feature.dump` — full state **WITH** TABLE fields (restore this next
+  week to resume the feature).
+- `staging-no-tables.dump` / `most-recent-dump.dump` — cleaned state **WITHOUT**
+  TABLE fields; this is what staging runs.
+
+To resume next week: restore `after-table-feature.dump` and check out
+`sebas-feature-tables`.
 </content>
