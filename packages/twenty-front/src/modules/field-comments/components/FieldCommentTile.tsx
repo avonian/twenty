@@ -6,9 +6,11 @@ import { themeCssVariables } from 'twenty-ui-deprecated/theme-constants';
 import { isNonEmptyString } from '@sniptt/guards';
 import { isDefined } from 'twenty-shared/utils';
 
+import { useFieldCommentInputFocusGuard } from '@/field-comments/hooks/useFieldCommentInputFocusGuard';
 import { useFieldCommentTypeField } from '@/field-comments/hooks/useFieldCommentTypeField';
 import { type FieldCommentThread } from '@/field-comments/types/FieldComment';
 import { SelectDisplay } from '@/ui/field/display/components/SelectDisplay';
+import { FocusComponentType } from '@/ui/utilities/focus/types/FocusComponentType';
 import { beautifyPastDateRelativeToNow } from '~/utils/date-utils';
 
 const StyledTile = styled.div`
@@ -122,6 +124,14 @@ export const FieldCommentTile = ({
   const [isReplying, setIsReplying] = useState(false);
   const [replyText, setReplyText] = useState('');
 
+  // Keep global letter hotkeys (e.g. "g"+key go-to navigation) from firing while
+  // typing a reply — otherwise the reply text can navigate the app away.
+  const { onFocus: onReplyInputFocus, onBlur: onReplyInputBlur } =
+    useFieldCommentInputFocusGuard(
+      `field-comment-reply-${thread.id}`,
+      FocusComponentType.TEXT_INPUT,
+    );
+
   // Resolve the chosen "Type" SELECT option (when present) for a colored badge.
   const typeOption = isDefined(thread.type)
     ? fieldCommentTypeField?.options?.find(
@@ -184,6 +194,8 @@ export const FieldCommentTile = ({
             autoFocus
             value={replyText}
             placeholder={t`Reply...`}
+            onFocus={onReplyInputFocus}
+            onBlur={onReplyInputBlur}
             onChange={(event) => setReplyText(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === 'Enter') {

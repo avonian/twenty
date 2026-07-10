@@ -110,6 +110,17 @@ and deep-linking (`?fieldComment=<fieldMetadataId>`). Built on the standard
 `note` + `noteTarget` objects: a *field comment* = a note whose noteTarget has
 `targetFieldMetadataId` set; replies = notes with `parentNoteId`. The native
 Notes tab excludes field-anchored notes via `useNotes` `additionalFilter`.
+**Hotkey guard:** the composer (`FieldCommentComposer`) and reply box
+(`FieldCommentTile`) are plain `<textarea>`/`<input>` that don't join Twenty's
+focus stack, so global letter hotkeys — notably the `g`+key **go-to navigation**
+shortcuts (bound with `enableOnFormTags`, so they fire even inside form fields) —
+stayed live while typing and would **navigate the app away mid-message** when the
+text contained the right two letters (looked object-specific, e.g. only País, but
+it just depended on the typed letters). Fixed with
+`useFieldCommentInputFocusGuard`: on focus it pushes a focus-stack item with
+`enableGlobalHotkeysConflictingWithKeyboard: false` (the same thing Twenty's own
+inputs do), removed on blur **and on unmount** (so a popover/panel closing can't
+leave global hotkeys disabled).
 
 ### b. Objectives — `modules/field-objectives/` (parallel to comments, 🎯 bullseye, red)
 Same engine, separated by the **`note.bucket`** discriminator (`OBJECTIVE` vs
