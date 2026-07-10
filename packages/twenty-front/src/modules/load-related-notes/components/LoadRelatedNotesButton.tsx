@@ -2,11 +2,13 @@ import { useLingui } from '@lingui/react/macro';
 import { useState } from 'react';
 import {
   IconBriefcase,
+  IconCalendarEvent,
   IconChartBar,
   IconChevronLeft,
   IconChevronRight,
   IconDownload,
   IconFlag,
+  IconHistory,
 } from 'twenty-ui-deprecated/display';
 import { Button } from 'twenty-ui-deprecated/input';
 import { MenuItem } from 'twenty-ui-deprecated/navigation';
@@ -36,6 +38,12 @@ type LoadRelatedNotesButtonProps = {
   size?: 'small' | 'medium';
 };
 
+type PastEventoRecord = {
+  id: string;
+  name?: string;
+  fechaInicio?: string | null;
+};
+
 const LoadRelatedNotesDropdownContent = ({
   eventoId,
   bucket,
@@ -43,6 +51,7 @@ const LoadRelatedNotesDropdownContent = ({
   pais,
   distribuidor,
   performances,
+  pastEventos,
 }: {
   eventoId: string;
   bucket: NoteBucketValue;
@@ -50,14 +59,36 @@ const LoadRelatedNotesDropdownContent = ({
   pais: RelationRecord;
   distribuidor: RelationRecord;
   performances: { id: string; name?: string }[];
+  pastEventos: PastEventoRecord[];
 }) => {
   const { t } = useLingui();
-  const [view, setView] = useState<'main' | 'performances'>('main');
+  const [view, setView] = useState<'main' | 'performances' | 'pastEvents'>(
+    'main',
+  );
   const { loadNotesFromSource } = useLoadRelatedNotes(eventoId, bucket);
   const { enqueueSuccessSnackBar, enqueueErrorSnackBar } = useSnackBar();
   const { closeDropdown } = useCloseDropdown();
 
   const isObjectives = bucket === NOTE_BUCKET.OBJECTIVE;
+
+  const reportResult = (linked: number, skipped: number) => {
+    const loadedMessage = isObjectives
+      ? t`Loaded ${linked} objective(s)`
+      : t`Loaded ${linked} note(s)`;
+    enqueueSuccessSnackBar({
+      message:
+        skipped > 0
+          ? t`${loadedMessage} (${skipped} already linked)`
+          : loadedMessage,
+    });
+  };
+
+  const reportError = () =>
+    enqueueErrorSnackBar({
+      message: isObjectives
+        ? t`Could not load objectives`
+        : t`Could not load notes`,
+    });
 
   const run = async (objectNameSingular: string, recordId: string) => {
     closeDropdown(dropdownId);
@@ -66,23 +97,75 @@ const LoadRelatedNotesDropdownContent = ({
         objectNameSingular,
         recordId,
       );
-      const loadedMessage = isObjectives
-        ? t`Loaded ${linked} objective(s)`
-        : t`Loaded ${linked} note(s)`;
-      enqueueSuccessSnackBar({
-        message:
-          skipped > 0
-            ? t`${loadedMessage} (${skipped} already linked)`
-            : loadedMessage,
-      });
+      reportResult(linked, skipped);
     } catch {
-      enqueueErrorSnackBar({
-        message: isObjectives
-          ? t`Could not load objectives`
-          : t`Could not load notes`,
-      });
+      reportError();
     }
   };
+
+  // Bulk-load every past event of the distribuidor. Sequential so each call's
+  // dedup (a fresh network-only fetch of what the evento already has) also
+  // dedupes notes shared across several past events.
+  const runAllPastEvents = async () => {
+    closeDropdown(dropdownId);
+    try {
+      let linked = 0;
+      let skipped = 0;
+      for (const pastEvento of pastEventos) {
+        const result = await loadNotesFromSource('evento', pastEvento.id);
+        linked += result.linked;
+        skipped += result.skipped;
+      }
+      reportResult(linked, skipped);
+    } catch {
+      reportError();
+    }
+  };
+
+  const formatEventoLabel = (pastEvento: PastEventoRecord) => {
+    const name = pastEvento.name ?? t`Untitled`;
+    return pastEvento.fechaInicio
+      ? `${name} · ${new Date(pastEvento.fechaInicio).toLocaleDateString()}`
+      : name;
+  };
+
+  if (view === 'pastEvents') {
+    return (
+      <DropdownContent>
+        <DropdownMenuHeader
+          StartComponent={
+            <DropdownMenuHeaderLeftComponent
+              onClick={() => setView('main')}
+              Icon={IconChevronLeft}
+            />
+          }
+        >
+          {t`Past events`}
+        </DropdownMenuHeader>
+        <DropdownMenuItemsContainer>
+          {pastEventos.length === 0 ? (
+            <MenuItem text={t`No past events`} />
+          ) : (
+            <>
+              <MenuItem
+                LeftIcon={IconHistory}
+                text={t`From all past events`}
+                onClick={runAllPastEvents}
+              />
+              {pastEventos.map((pastEvento) => (
+                <MenuItem
+                  key={pastEvento.id}
+                  LeftIcon={IconCalendarEvent}
+                  text={formatEventoLabel(pastEvento)}
+                  onClick={() => run('evento', pastEvento.id)}
+                />
+              ))}
+            </>
+          )}
+        </DropdownMenuItemsContainer>
+      </DropdownContent>
+    );
+  }
 
   if (view === 'performances') {
     return (
@@ -139,6 +222,14 @@ const LoadRelatedNotesDropdownContent = ({
             onClick={() => setView('performances')}
           />
         )}
+        {distribuidor !== null && (
+          <MenuItem
+            LeftIcon={IconHistory}
+            RightIcon={IconChevronRight}
+            text={t`From past event`}
+            onClick={() => setView('pastEvents')}
+          />
+        )}
       </DropdownMenuItemsContainer>
     </DropdownContent>
   );
@@ -170,6 +261,21 @@ export const LoadRelatedNotesButton = ({
     skip: distribuidor === null,
   });
 
+  // Every other evento of the same distribuidor, newest first. Option B: all
+  // sibling events (not just strictly earlier ones); undated ones sink last.
+  const { records: pastEventos } = useFindManyRecords<ObjectRecord>({
+    objectNameSingular: 'evento',
+    filter: {
+      and: [
+        { distribuidorId: { eq: distribuidor?.id ?? '' } },
+        { id: { neq: eventoId } },
+      ],
+    },
+    orderBy: [{ fechaInicio: 'DescNullsLast' }],
+    recordGqlFields: { id: true, name: true, fechaInicio: true },
+    skip: distribuidor === null,
+  });
+
   return (
     <Dropdown
       dropdownId={dropdownId}
@@ -194,6 +300,7 @@ export const LoadRelatedNotesButton = ({
           pais={pais}
           distribuidor={distribuidor}
           performances={performances as { id: string; name?: string }[]}
+          pastEventos={pastEventos as PastEventoRecord[]}
         />
       }
     />

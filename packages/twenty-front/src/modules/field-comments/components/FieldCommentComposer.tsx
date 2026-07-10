@@ -1,11 +1,13 @@
 import { styled } from '@linaria/react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { useLingui } from '@lingui/react/macro';
 import { isNonEmptyString } from '@sniptt/guards';
 import { IconSend } from 'twenty-ui-deprecated/display';
 import { themeCssVariables } from 'twenty-ui-deprecated/theme-constants';
 
+import { useFieldCommentInputFocusGuard } from '@/field-comments/hooks/useFieldCommentInputFocusGuard';
 import { useFieldCommentTypeField } from '@/field-comments/hooks/useFieldCommentTypeField';
+import { FocusComponentType } from '@/ui/utilities/focus/types/FocusComponentType';
 
 const StyledComposer = styled.div`
   border-top: 1px solid ${themeCssVariables.border.color.light};
@@ -109,6 +111,15 @@ export const FieldCommentComposer = ({
   const [selectedTypeValue, setSelectedTypeValue] = useState<string>('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Suppress global letter hotkeys (e.g. "g"+key go-to navigation) while the
+  // composer is focused so typing a comment can't navigate the app away.
+  const composerFocusId = `field-comment-composer-${useId()}`;
+  const { onFocus: onComposerFocus, onBlur: onComposerBlur } =
+    useFieldCommentInputFocusGuard(
+      composerFocusId,
+      FocusComponentType.TEXT_AREA,
+    );
+
   // Resize to fit content whenever the text changes (incl. the reset to one
   // line after submitting). Grow up to a cap, then switch to scrolling — the
   // scrollbar only appears once that cap is reached.
@@ -167,6 +178,8 @@ export const FieldCommentComposer = ({
           rows={1}
           value={newCommentText}
           placeholder={placeholder ?? t`Add a comment...`}
+          onFocus={onComposerFocus}
+          onBlur={onComposerBlur}
           onChange={(event) => setNewCommentText(event.target.value)}
           onKeyDown={(event) => {
             // Enter sends; Shift+Enter inserts a newline.
