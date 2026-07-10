@@ -23,6 +23,8 @@ import { isFieldPhones } from '@/object-record/record-field/ui/types/guards/isFi
 import { isFieldPhonesValue } from '@/object-record/record-field/ui/types/guards/isFieldPhonesValue';
 import { isFieldRawJson } from '@/object-record/record-field/ui/types/guards/isFieldRawJson';
 import { isFieldRawJsonValue } from '@/object-record/record-field/ui/types/guards/isFieldRawJsonValue';
+import { isFieldTable } from '@/object-record/record-field/ui/types/guards/isFieldTable';
+import { isFieldTableValue } from '@/object-record/record-field/ui/types/guards/isFieldTableValue';
 import { isFieldSelect } from '@/object-record/record-field/ui/types/guards/isFieldSelect';
 import { isFieldSelectValue } from '@/object-record/record-field/ui/types/guards/isFieldSelectValue';
 import { recordStoreFamilySelector } from '@/object-record/record-store/states/selectors/recordStoreFamilySelector';
@@ -143,6 +145,9 @@ export const usePersistField = ({
       const fieldIsRawJson =
         isFieldRawJson(fieldDefinition) && isFieldRawJsonValue(valueToPersist);
 
+      const fieldIsTable =
+        isFieldTable(fieldDefinition) && isFieldTableValue(valueToPersist);
+
       const fieldIsRichText =
         isFieldRichText(fieldDefinition) &&
         isFieldRichTextValue(valueToPersist);
@@ -179,6 +184,7 @@ export const usePersistField = ({
         fieldIsMultiSelect ||
         fieldIsAddress ||
         fieldIsRawJson ||
+        fieldIsTable ||
         fieldIsArray ||
         fieldIsFiles ||
         fieldIsRichText;

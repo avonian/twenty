@@ -37,6 +37,7 @@ export const fieldMetadataTypeToColumnType = <Type extends FieldMetadataType>(
       return 'enum';
     case FieldMetadataType.FILES:
     case FieldMetadataType.RAW_JSON:
+    case FieldMetadataType.TABLE:
       return 'jsonb';
     case FieldMetadataType.TS_VECTOR:
       return 'tsvector';

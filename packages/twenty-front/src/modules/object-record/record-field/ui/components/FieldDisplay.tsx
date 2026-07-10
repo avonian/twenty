@@ -51,6 +51,8 @@ import { isFieldFullName } from '@/object-record/record-field/ui/types/guards/is
 import { isFieldMultiSelect } from '@/object-record/record-field/ui/types/guards/isFieldMultiSelect';
 import { isFieldNumber } from '@/object-record/record-field/ui/types/guards/isFieldNumber';
 import { isFieldRawJson } from '@/object-record/record-field/ui/types/guards/isFieldRawJson';
+import { isFieldTable } from '@/object-record/record-field/ui/types/guards/isFieldTable';
+import { TableFieldDisplay } from '@/object-record/record-field/ui/meta-types/display/components/TableFieldDisplay';
 import { isFieldSelect } from '@/object-record/record-field/ui/types/guards/isFieldSelect';
 import { isFieldText } from '@/object-record/record-field/ui/types/guards/isFieldText';
 import { isFieldUuid } from '@/object-record/record-field/ui/types/guards/isFieldUuid';
@@ -104,6 +106,8 @@ export const FieldDisplay = () => {
     <MultiSelectFieldDisplay />
   ) : isFieldAddress(fieldDefinition) ? (
     <AddressFieldDisplay />
+  ) : isFieldTable(fieldDefinition) ? (
+    <TableFieldDisplay />
   ) : isFieldRawJson(fieldDefinition) ? (
     <JsonFieldDisplay />
   ) : isFieldBoolean(fieldDefinition) ? (

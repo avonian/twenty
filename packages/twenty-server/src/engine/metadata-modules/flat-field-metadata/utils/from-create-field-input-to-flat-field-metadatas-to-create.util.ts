@@ -183,6 +183,7 @@ export const fromCreateFieldInputToFlatFieldMetadatasToCreate = async ({
     case FieldMetadataType.POSITION:
     case FieldMetadataType.ADDRESS:
     case FieldMetadataType.RAW_JSON:
+    case FieldMetadataType.TABLE:
     case FieldMetadataType.RICH_TEXT:
     case FieldMetadataType.ACTOR:
     case FieldMetadataType.ARRAY: {

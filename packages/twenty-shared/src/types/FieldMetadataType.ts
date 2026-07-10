@@ -21,6 +21,7 @@ export enum FieldMetadataType {
   RELATION = 'RELATION',
   RICH_TEXT = 'RICH_TEXT',
   SELECT = 'SELECT',
+  TABLE = 'TABLE',
   TEXT = 'TEXT',
   TS_VECTOR = 'TS_VECTOR',
   UUID = 'UUID',

@@ -938,6 +938,22 @@ export const successfulFilterInputByFieldMetadataType: {
       },
     },
   ],
+  [FieldMetadataType.TABLE]: [
+    {
+      gqlFilterInput: { tableField: { is: 'NULL' } },
+      restFilterInput: 'tableField[is]:NULL',
+      validateFilter: (record: Record<string, any>) => {
+        return record.tableField === null;
+      },
+    },
+    {
+      gqlFilterInput: { tableField: { is: 'NOT_NULL' } },
+      restFilterInput: 'tableField[is]:NOT_NULL',
+      validateFilter: (record: Record<string, any>) => {
+        return isDefined(record.tableField);
+      },
+    },
+  ],
   [FieldMetadataType.ARRAY]: [
     {
       gqlFilterInput: { arrayField: { containsIlike: 'test' } },

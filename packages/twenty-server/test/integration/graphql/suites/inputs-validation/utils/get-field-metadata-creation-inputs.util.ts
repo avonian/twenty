@@ -152,6 +152,12 @@ export const getFieldMetadataCreationInputs = (
       type: FieldMetadataType.RAW_JSON,
       objectMetadataId,
     },
+    [FieldMetadataType.TABLE]: {
+      name: 'tableField',
+      label: 'tableField',
+      type: FieldMetadataType.TABLE,
+      objectMetadataId,
+    },
     [FieldMetadataType.ARRAY]: {
       name: 'arrayField',
       label: 'arrayField',

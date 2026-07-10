@@ -107,6 +107,9 @@ export {
 export type {
   FieldNumberVariant,
   FieldCurrencyFormat,
+  FieldMetadataTableCellType,
+  FieldMetadataTableColumn,
+  FieldMetadataTableSettings,
   FieldMetadataSettingsMapping,
   AllFieldMetadataSettings,
   FieldMetadataSettings,

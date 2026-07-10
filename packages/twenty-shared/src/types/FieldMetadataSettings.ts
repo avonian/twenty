@@ -67,6 +67,27 @@ type FieldMetadataTsVectorSettings = {
   generatedType?: 'STORED' | 'VIRTUAL';
 };
 
+// TABLE (Flamagas): a fixed-schema spreadsheet field. The schema (headers,
+// dimensions, pre-filled left column) lives here in settings; the filled cells
+// live in the record's jsonb value ({ cells: (string | number | null)[][] }).
+export type FieldMetadataTableCellType = 'TEXT' | 'NUMBER';
+
+export type FieldMetadataTableColumn = {
+  // Stable identifier that survives header renames (data maps by key).
+  key: string;
+  header: string;
+};
+
+export type FieldMetadataTableSettings = {
+  columns: FieldMetadataTableColumn[];
+  rowCount: number;
+  // When false, users may append rows in the editor.
+  isRowCountFixed?: boolean;
+  // Pre-filled, non-editable left-most column labels (one per row), from Excel.
+  firstColumnLabels?: string[];
+  cellType?: FieldMetadataTableCellType;
+};
+
 export type FieldMetadataSettingsMapping = {
   [FieldMetadataType.NUMBER]: FieldMetadataNumberSettings | null;
   [FieldMetadataType.CURRENCY]: FieldMetadataCurrencySettings | null;
@@ -82,6 +103,7 @@ export type FieldMetadataSettingsMapping = {
   [FieldMetadataType.LINKS]: FieldMetadataMultiItemSettings | null;
   [FieldMetadataType.ARRAY]: FieldMetadataMultiItemSettings | null;
   [FieldMetadataType.FILES]: FieldMetadataFilesSettings;
+  [FieldMetadataType.TABLE]: FieldMetadataTableSettings | null;
 };
 
 export type AllFieldMetadataSettings =

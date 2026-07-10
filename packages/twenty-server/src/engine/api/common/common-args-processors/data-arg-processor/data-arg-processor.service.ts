@@ -226,7 +226,9 @@ export class DataArgProcessorService {
 
         return transformArrayField(validatedValue);
       }
-      case FieldMetadataType.RAW_JSON: {
+      case FieldMetadataType.RAW_JSON:
+      // TABLE (Flamagas): stored as jsonb ({ cells }), validated/written as JSON.
+      case FieldMetadataType.TABLE: {
         const validatedValue = validateRawJsonFieldOrThrow(value, key);
 
         return transformRawJsonField(validatedValue);

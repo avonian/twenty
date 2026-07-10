@@ -64,6 +64,13 @@ export const failingCreateInputByFieldMetadataType: {
       },
     },
   ],
+  [FieldMetadataType.TABLE]: [
+    {
+      input: {
+        tableField: 'not-a-stringified-json',
+      },
+    },
+  ],
   [FieldMetadataType.ARRAY]: [
     {
       input: {

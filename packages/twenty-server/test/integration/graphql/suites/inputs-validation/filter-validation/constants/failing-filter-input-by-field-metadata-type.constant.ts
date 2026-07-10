@@ -237,6 +237,16 @@ export const failingFilterInputByFieldMetadataType: {
       restFilterInput: '',
     },
   ],
+  [FieldMetadataType.TABLE]: [
+    {
+      gqlFilterInput: { tableField: { like: {} } },
+      restFilterInput: '',
+    },
+    {
+      gqlFilterInput: { tableField: { like: true } },
+      restFilterInput: '',
+    },
+  ],
   [FieldMetadataType.ARRAY]: [
     {
       gqlFilterInput: { arrayField: { containsIlike: {} } },
